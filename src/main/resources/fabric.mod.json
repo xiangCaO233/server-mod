@@ -16,10 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.example.ExampleMod"
-		],
-		"client": [
-			"com.example.ExampleModClient"
+			"com.xiang.ServerUtility"
 		]
 	},
 	"mixins": [

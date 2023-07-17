@@ -1,9 +1,9 @@
 {
-	"required": true,
-	"package": "com.example.mixin",
+	"required": false,
+	"package": "com.xiang.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ExampleMixin"
+		"ServerUtilityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
