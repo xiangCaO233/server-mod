@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "com.xiang.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "BlockMixin",
+    "PlayerManagerMixin",
+    "PlayerMixin",
+    "ServerMixin",
+    "ServerPlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "ClientMixin"
+  ]
+}
