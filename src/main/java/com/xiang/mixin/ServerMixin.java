@@ -1,19 +1,12 @@
 package com.xiang.mixin;
 
-import com.mojang.brigadier.ParseResults;
-import com.mojang.brigadier.context.CommandContextBuilder;
 import com.xiang.ServerUtility;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
@@ -22,8 +15,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
 
 /**
  * @author xiang2333
@@ -59,21 +50,28 @@ public abstract class ServerMixin {
         if (ServerUtility.deathCountObj == null) {
             ServerUtility.LOGGER.info("创建deathCountScoreboardObj");
             ServerUtility.deathCountObj = scoreboard.addObjective(
-                    "deathCount", ScoreboardCriterion.DEATH_COUNT, Text.of("死亡数"), ScoreboardCriterion.RenderType.INTEGER
+                    "deathCount", ScoreboardCriterion.DEATH_COUNT, Text.of("死亡榜"), ScoreboardCriterion.RenderType.INTEGER
+            );
+            ServerUtility.LOGGER.info("创建deathCountScoreboardObj完成");
+        }
+        ServerUtility.minedCountObj = scoreboard.getObjective("minedCount");
+        if (ServerUtility.minedCountObj == null) {
+            ServerUtility.LOGGER.info("创建deathCountScoreboardObj");
+            ServerUtility.deathCountObj = scoreboard.addObjective(
+                    "minedCount", ScoreboardCriterion.DUMMY, Text.of("挖掘榜"), ScoreboardCriterion.RenderType.INTEGER
             );
             ServerUtility.LOGGER.info("创建deathCountScoreboardObj完成");
         }
 
-        CommandManager cmd = getCommandManager();
         ServerUtility.LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false,getPlayerManager().getServer());
         ServerUtility.LOGGER.info("指令设置不显示死亡消息");
         getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false,getPlayerManager().getServer());
 
 
-        ServerUtility.LOGGER.info("指令设置scoreboardObj显示");
-        cmd.executeWithPrefix(getCommandSource(), "/scoreboard objectives setdisplay sidebar deathCount");
-        ServerUtility.LOGGER.info("Slot->"+getScoreboard().getSlot(ServerUtility.deathCountObj));
+//        ServerUtility.LOGGER.info("指令设置scoreboardObj显示");
+//        cmd.executeWithPrefix(getCommandSource(), "/scoreboard objectives setdisplay sidebar deathCount");
+//        ServerUtility.LOGGER.info("Slot->"+getScoreboard().getSlot(ServerUtility.deathCountObj));
 
 
 

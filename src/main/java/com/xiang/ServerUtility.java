@@ -3,13 +3,10 @@ package com.xiang;
 import net.fabricmc.api.ModInitializer;
 
 import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.server.command.GameRuleCommand;
-import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * @author xiang2333
@@ -23,7 +20,7 @@ public class ServerUtility implements ModInitializer {
 	//死亡数
 	public static ScoreboardObjective deathCountObj;
 	//挖掘数
-	public static ScoreboardObjective minedBlocksObj;
+	public static ScoreboardObjective minedCountObj;
 	//放置数
 	public static ScoreboardObjective placedBlocksObj;
 	//交易数
@@ -51,7 +48,7 @@ public class ServerUtility implements ModInitializer {
 
 		scoreboardObjectives = new ArrayList<>();
 		scoreboardObjectives.add(deathCountObj);
-		scoreboardObjectives.add(minedBlocksObj);
+		scoreboardObjectives.add(minedCountObj);
 		scoreboardObjectives.add(placedBlocksObj);
 		scoreboardObjectives.add(tradeCountObj);
 		scoreboardObjectives.add(moveStatisticsObj);

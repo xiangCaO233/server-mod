@@ -2,6 +2,7 @@ package com.xiang.mixin;
 
 import com.xiang.ServerUtility;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.PlayerManager;
@@ -20,8 +21,7 @@ public class PlayerManagerMixin {
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         player.getScoreboard().setObjectiveSlot(
-                3,ServerUtility.deathCountObj
+                Scoreboard.getDisplaySlotId("sidebar"),ServerUtility.minedCountObj
         );
-
     }
 }
