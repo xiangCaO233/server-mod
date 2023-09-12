@@ -4,6 +4,9 @@ import com.mojang.datafixers.util.Either;
 import com.xiang.ServerUtility;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
@@ -13,7 +16,10 @@ import net.minecraft.util.Colors;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
+import net.minecraft.village.TradeOffer;
+import net.minecraft.village.TradeOfferList;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,6 +38,8 @@ public abstract class ServerPlayerMixin extends PlayerMixin{
 
     @Shadow public abstract Either<PlayerEntity.SleepFailureReason, Unit> trySleep(BlockPos pos);
 
+    @Shadow @Final private static Logger LOGGER;
+
     @Inject(at = @At("TAIL"), method = "tick")
     private void playerTick(CallbackInfo info) {
         /*scoreboard.addObjective(
@@ -40,11 +48,8 @@ public abstract class ServerPlayerMixin extends PlayerMixin{
     }
     @Inject(at = @At("TAIL"), method = "onDeath")
     private void playerDead(DamageSource damageSource, CallbackInfo callbackInfo) {
-        //ServerUtility.LOGGER.info(getName() + "$4趋势了");
         //玩家死亡消息
-
         server.getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append(getName()).append("§4趋势了"),false);
-        //sendMessageToClient(Text.of(getName() + "$4趋势了"),true);
     }
 
 }

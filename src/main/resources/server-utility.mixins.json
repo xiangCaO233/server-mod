@@ -4,10 +4,12 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockMixin",
+    "LivingEntityMixin",
     "PlayerManagerMixin",
     "PlayerMixin",
     "ServerMixin",
-    "ServerPlayerMixin"
+    "ServerPlayerMixin",
+    "TradeOutputSlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
