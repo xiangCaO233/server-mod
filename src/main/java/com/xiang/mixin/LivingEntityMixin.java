@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.xiang.ServerUtility.damageStatisticMap;
+import static com.xiang.ServerUtility.killCountStatisticMap;
 
 /**
  * @author xiang2333
@@ -31,21 +32,7 @@ public abstract class LivingEntityMixin{
                 //玩家攻击
                 //增加缓存中玩家造成的伤害
                 String playerName = player.getEntityName();
-                if (damageStatisticMap.containsKey(playerName)) {
-                    damageStatisticMap.put(playerName, damageStatisticMap.get(playerName) + amount);
-                } else {
-                    damageStatisticMap.put(playerName, amount);
-                }
-                //更新输出伤害计分板
-
-
-
-                /*ScoreboardObjective objective = player.getScoreboard().getObjective("damage");
-                if (objective != null) {
-                    ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(playerName, objective);
-                    // 设置玩家的积分
-                    playerScore.setScore(damageStatisticMap.get(playerName).intValue());
-                }*/
+                damageStatisticMap.put(playerName, damageStatisticMap.get(playerName) + amount);
             }
         }
     }
@@ -57,14 +44,9 @@ public abstract class LivingEntityMixin{
             if (sourceAttacker instanceof PlayerEntity player){
                 //玩家攻击
                 //更新击杀计分板
+                String playerName = player.getEntityName();
+                killCountStatisticMap.put(playerName, killCountStatisticMap.get(playerName) + 1);
 
-
-                /*ScoreboardObjective objective = player.getScoreboard().getObjective("killCount");
-                if (objective != null) {
-                    ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
-                    // 增加玩家的积分
-                    playerScore.incrementScore(1);
-                }*/
             }
         }
     }
