@@ -27,6 +27,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.xiang.ServerUtility.deathsStatisticMap;
+import static com.xiang.ServerUtility.moveStatisticMap;
+
 /**
  * @author xiang2333
  */
@@ -50,6 +53,10 @@ public abstract class ServerPlayerMixin extends PlayerMixin{
      */
     @Inject(at = @At("TAIL"), method = "onDeath")
     private void playerDead(DamageSource damageSource, CallbackInfo callbackInfo) {
+        //死亡注入
+        String playerName = self.getEntityName();
+        //增加缓存中玩家死亡次数
+        deathsStatisticMap.put(playerName, deathsStatisticMap.get(playerName) + 1);
         //玩家死亡消息
         server.getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append(getName()).append("§4趋势了"),false);
     }

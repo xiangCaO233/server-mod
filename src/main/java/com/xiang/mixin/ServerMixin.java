@@ -84,177 +84,6 @@ public abstract class ServerMixin {
             );
             LOGGER.info("创建healthObjScoreboardObj完成");
         }
-        /*//初始化积分榜
-        ServerUtility.serverScoreboard = this.scoreboard;
-        //生命值
-        healthObj = scoreboard.getObjective("health");
-        if (healthObj == null) {
-            LOGGER.info("创建healthObjScoreboardObj");
-            healthObj = scoreboard.addObjective(
-                    "health", ScoreboardCriterion.HEALTH, Text.of("生命值"), ScoreboardCriterion.RenderType.HEARTS
-            );
-            LOGGER.info("创建healthObjScoreboardObj完成");
-        }
-
-        //死亡数
-        deathCountObj = scoreboard.getObjective("deathCount");
-        if (deathCountObj == null) {
-            LOGGER.info("创建deathCountScoreboardObj");
-            deathCountObj = scoreboard.addObjective(
-                    "deathCount", ScoreboardCriterion.DEATH_COUNT, Text.of("死亡榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建deathCountScoreboardObj完成");
-        }
-        scoreboardObjectives.add(deathCountObj);
-
-        //等级
-        levelObj = scoreboard.getObjective("level");
-        if (levelObj == null) {
-            LOGGER.info("创建levelObj");
-            levelObj = scoreboard.addObjective(
-                    "level", ScoreboardCriterion.LEVEL, Text.of("等级榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建levelObj完成");
-        }
-        scoreboardObjectives.add(levelObj);
-
-        //挖掘数
-        minedCountObj = scoreboard.getObjective("minedCount");
-        if (minedCountObj == null) {
-            LOGGER.info("创建minedCountScoreboardObj");
-            minedCountObj = scoreboard.addObjective(
-                    "minedCount", ScoreboardCriterion.DUMMY, Text.of("挖掘榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建minedCountScoreboardObj完成");
-        }
-        scoreboardObjectives.add(minedCountObj);
-
-        //放置数
-        placedCountObj = scoreboard.getObjective("placedCount");
-        if (placedCountObj == null) {
-            LOGGER.info("创建placedCountScoreboardObj");
-            placedCountObj = scoreboard.addObjective(
-                    "placedCount", ScoreboardCriterion.DUMMY, Text.of("放置榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建placedCountScoreboardObj完成");
-        }
-        scoreboardObjectives.add(placedCountObj);
-
-        //交易数
-        tradeCountObj = scoreboard.getObjective("tradeCount");
-        if (tradeCountObj == null) {
-            LOGGER.info("创建tradeCountObj");
-            tradeCountObj = scoreboard.addObjective(
-                    "tradeCount", ScoreboardCriterion.DUMMY, Text.of("交易榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建tradeCountObj完成");
-        }
-        scoreboardObjectives.add(tradeCountObj);
-
-        //移动距离
-        moveDistanceObj = scoreboard.getObjective("moveDistance");
-        if (moveDistanceObj == null) {
-            LOGGER.info("创建moveDistanceScoreboardObj");
-            moveDistanceObj = scoreboard.addObjective(
-                    "moveDistance", ScoreboardCriterion.DUMMY, Text.of("移动榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建moveDistanceScoreboardObj完成");
-        }
-        scoreboardObjectives.add(moveDistanceObj);
-        //复原移动距离缓存map
-        for (String playerName : scoreboard.getKnownPlayers()) {
-            String data = (String) prop.get(playerName);
-            if (data == null) {
-                moveStatisticMap.put(playerName, (double) scoreboard.getPlayerScore(playerName, moveDistanceObj).getScore());
-            } else {
-                String moveData = (data.split("\\|")[0]);
-                moveStatisticMap.put(
-                        playerName,
-                        Double.valueOf(
-                                "null".equals(moveData) ? "0" : moveData
-                        )
-                );
-            }
-        }
-
-        //经验获取数
-        expGetCountObj = scoreboard.getObjective("expGetCount");
-        if (expGetCountObj == null) {
-            LOGGER.info("创建expGetCountObj");
-            expGetCountObj = scoreboard.addObjective(
-                    "expGetCount", ScoreboardCriterion.DUMMY, Text.of("经验榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建expGetCountObj完成");
-        }
-        scoreboardObjectives.add(expGetCountObj);
-
-        //造成伤害数
-        damageObj = scoreboard.getObjective("damage");
-        if (damageObj == null) {
-            LOGGER.info("创建damageObj");
-            damageObj = scoreboard.addObjective(
-                    "damage", ScoreboardCriterion.DUMMY, Text.of("伤害榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建damageObj完成");
-        }
-        scoreboardObjectives.add(damageObj);*/
-        /*//复原伤害缓存map
-        for (String playerName : scoreboard.getKnownPlayers()) {
-            String data = (String) prop.get(playerName);
-            if (data == null) {
-                damageStatisticMap.put(playerName, (float) scoreboard.getPlayerScore(playerName, damageObj).getScore());
-            } else {
-                System.out.println("处理damage配置");
-                String damageData = (data.split("\\|")[1]);
-                damageStatisticMap.put(
-                        playerName,
-                        Float.valueOf(
-                                "null".equals(damageData) ? "0" : damageData
-                        )
-                );
-            }
-        }*/
-
-        /*//受到伤害数
-        takeDamageObj = scoreboard.getObjective("takeDamage");
-        if (takeDamageObj == null) {
-            LOGGER.info("创建takeDamageObj");
-            takeDamageObj = scoreboard.addObjective(
-                    "takeDamage", ScoreboardCriterion.DUMMY, Text.of("受伤榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建takeDamageObj完成");
-        }
-        scoreboardObjectives.add(takeDamageObj);
-
-        //复原受伤缓存map
-        for (String playerName : scoreboard.getKnownPlayers()) {
-            String data = (String) prop.get(playerName);
-            if (data == null) {
-                takeDamageStatisticMap.put(playerName, (float) scoreboard.getPlayerScore(playerName, takeDamageObj).getScore());
-            } else {
-                System.out.println("处理takeDamage配置");
-                String takeDamage = (data.split("\\|")[2]);
-                takeDamageStatisticMap.put(
-                        playerName,
-                        Float.valueOf(
-                                "null".equals(takeDamage) ? "0" : takeDamage
-                        )
-                );
-            }
-        }
-
-        //击杀数(任何有生命实体)
-        killCountObj = scoreboard.getObjective("killCount");
-        if (killCountObj == null) {
-            LOGGER.info("创建killCountObj");
-            killCountObj = scoreboard.addObjective(
-                    "killCount", ScoreboardCriterion.DUMMY, Text.of("击杀榜"), ScoreboardCriterion.RenderType.INTEGER
-            );
-            LOGGER.info("创建killCountObj完成");
-        }
-        scoreboardObjectives.add(killCountObj);
-
-        ServerUtility.startScoreBoardTimer();*/
 
         LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
@@ -266,9 +95,6 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        /*for (ServerPlayerEntity player : playerManager.getPlayerList()){
-            betterObjective.syncAllScore(player);
-        }*/
         setMotd(new Random().nextInt(2000) + "");
 
         if (playerManager.getPlayerList().size() > 0) {
@@ -280,30 +106,6 @@ public abstract class ServerMixin {
             betterObjective.setScore(6, "IP: " + playerManager.getPlayerList().get(0).getIp(), BetterObjective.LEFT);
         }
 
-        /*scoreboard.getAllPlayerScores(moveDistanceObj).remove(scoreboard.getPlayerScore(lastMsptName,moveDistanceObj));*/
-        //scoreboard.getPlayerScore(lastMsptName = "mspt" + (int) getTickTime() ,moveDistanceObj).setScore(-1);
-    }
-
-    @Unique
-    private int getDistance(ServerPlayerEntity player) {
-        int stat = player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.CROUCH_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.SPRINT_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_ON_WATER_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.FALL_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.CLIMB_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.FLY_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_UNDER_WATER_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.MINECART_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.BOAT_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.PIG_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.HORSE_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.AVIATE_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.SWIM_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.STRIDER_ONE_CM);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.JUMP);
-        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.DROP);
-        return stat;
     }
 
     /**
@@ -341,11 +143,4 @@ public abstract class ServerMixin {
         stopNavThread = true;
 
     }
-
-
-
-    /*@Inject(at = @At("TAIL"), method = "runServer")
-    public void warn(String a, Object b, Object c) {
-        LOGGER.warn(a, b, c);
-    }*/
 }

@@ -56,48 +56,25 @@ public abstract class PlayerMixin {
         updatePrePos();
         String playerName = self.getEntityName();
         //增加缓存中玩家移动距离
-        if (moveStatisticMap.containsKey(playerName)) {
-            moveStatisticMap.put(playerName, moveStatisticMap.get(playerName) + moveDistance);
-        } else {
-            moveStatisticMap.put(playerName, moveDistance);
-        }
-        //更新计分板
-        ScoreboardObjective objective = getScoreboard().getObjective("moveDistance");
-        if (objective != null) {
-            ScoreboardPlayerScore playerScore = getScoreboard().getPlayerScore(getEntityName(), objective);
-            // 设置玩家的积分
-            playerScore.setScore(moveStatisticMap.get(playerName).intValue());
-        }
+        moveStatisticMap.put(playerName, moveStatisticMap.get(playerName) + moveDistance);
+
     }
 
     @Inject(at = @At("TAIL"), method = "addExperience")
     private void onPlayerGetExp(int experience, CallbackInfo ci) {
         //更新计分板
-        ScoreboardObjective objective = getScoreboard().getObjective("expGetCount");
-        if (objective != null) {
-            ScoreboardPlayerScore playerScore = getScoreboard().getPlayerScore(getEntityName(), objective);
-            // 增加玩家的积分
-            playerScore.incrementScore(experience);
-        }
+        String playerName = self.getEntityName();
+        //增加缓存中玩家经验获取
+        expGetCountStatisticMap.put(playerName, expGetCountStatisticMap.get(playerName) + experience);
+
     }
 
     @Inject(at = @At("TAIL"), method = "damage")
     private void onPlayerTakeDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         //玩家受攻击
-        //增加缓存中玩家造成的伤害
+        //增加缓存中玩家受到的伤害
         String playerName = getEntityName();
-        if (takeDamageStatisticMap.containsKey(playerName)) {
-            takeDamageStatisticMap.put(playerName, takeDamageStatisticMap.get(playerName) + amount);
-        } else {
-            takeDamageStatisticMap.put(playerName, amount);
-        }
-        //更新计分板
-        ScoreboardObjective objective = getScoreboard().getObjective("takeDamage");
-        if (objective != null) {
-            ScoreboardPlayerScore playerScore = getScoreboard().getPlayerScore(playerName, objective);
-            // 设置玩家的积分
-            playerScore.setScore(takeDamageStatisticMap.get(playerName).intValue());
-        }
+        takeDamageStatisticMap.put(playerName, takeDamageStatisticMap.get(playerName) + amount);
     }
 
     /**
