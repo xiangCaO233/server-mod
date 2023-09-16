@@ -57,7 +57,7 @@ public class BetterObjective {
      */
     public BetterObjective(String objectiveName, String displayName, int size) {
         //构建占位符
-        setPlaceholderWidth(40);
+        setPlaceholderWidth(36);
         scoreList = new String[size];
         for (int i = 0; i < scoreList.length; i++) {
             scoreList[i] = placeholder.substring(i);
