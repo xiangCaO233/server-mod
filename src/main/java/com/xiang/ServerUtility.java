@@ -1,5 +1,6 @@
 package com.xiang;
 
+import com.xiang.scoreborad.BetterObjective;
 import com.xiang.scoreborad_old.BetterScoreboard;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.scoreboard.Scoreboard;
@@ -38,7 +39,6 @@ public class ServerUtility implements ModInitializer {
 //	static Thread updateScoreboardTimer;
 	static Thread backupTimer;
 //	public static ServerScoreboard serverScoreboard;
-	public static BetterScoreboard betterScoreboard;
 //	public static boolean stopScoreboardT;
 	public static boolean stopBackupT;
 //	public static int scoreboardObjectiveIndex=0;
@@ -72,6 +72,11 @@ public class ServerUtility implements ModInitializer {
 	 * 玩家承受伤害缓存
 	 */
 	public static HashMap<String,Float> takeDamageStatisticMap;
+
+	/**
+	 * 公开的计分项 (测试)
+	 */
+	public static BetterObjective betterObjective = new BetterObjective("scoreboard", "尼玛", 10);
 //	//击杀数
 //	public static ScoreboardObjective killCountObj;
 //	//等级榜
@@ -132,7 +137,7 @@ public class ServerUtility implements ModInitializer {
 			backupsPath.mkdir();
 		}
 		//初始化better计分板
-		betterScoreboard = new BetterScoreboard("LifeGarden","--LifeGarden--");
+		//betterScoreboard = new BetterScoreboard("LifeGarden","--LifeGarden--");
 	}
 
 	public static void startBackupTimer(){

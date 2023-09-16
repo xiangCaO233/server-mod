@@ -1,9 +1,8 @@
 package com.xiang.mixin;
 
-import com.xiang.ServerUtility;
+import com.xiang.scoreborad.BetterObjective;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -38,8 +37,13 @@ public abstract class PlayerManagerMixin {
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
 
-        betterScoreboard.addScoreboardToPlayer(player);
-        betterScoreboard.show();
+        betterObjective.addDisplayPlayer(player);
+        betterObjective.setScore(0,"AAAA",0);
+        betterObjective.setScore(1,"AAAA",1);
+        betterObjective.setScore(2,"AAAA",2);
+
+        //betterScoreboard.addScoreboardToPlayer(player);
+        //betterScoreboard.show();
 
         Scoreboard scoreboard = player.getScoreboard();
         String playerName = player.getEntityName();

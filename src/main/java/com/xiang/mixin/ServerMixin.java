@@ -2,6 +2,7 @@ package com.xiang.mixin;
 
 import com.xiang.ServerUtility;
 import com.xiang.navigate.Navigator;
+import com.xiang.scoreborad.BetterObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -19,10 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
@@ -255,9 +253,16 @@ public abstract class ServerMixin {
 
     }
 
+
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+        /*for (ServerPlayerEntity player : playerManager.getPlayerList()){
+            betterObjective.syncAllScore(player);
+        }*/
 
+        betterObjective.setScore(0, "WDN←" + BetterObjective.format(new Random().nextInt(2000) + "", 6, BetterObjective.LEFT), BetterObjective.LEFT);
+        betterObjective.setScore(1, "WDNMD👉" + BetterObjective.format(new Random().nextInt(200) + "", 6, BetterObjective.RIGHT), BetterObjective.RIGHT);
+        betterObjective.setScore(2, "WDNMD中" + BetterObjective.format(new Random().nextInt(20) + "", 6, BetterObjective.CENTER), BetterObjective.CENTER);
 
         /*scoreboard.getAllPlayerScores(moveDistanceObj).remove(scoreboard.getPlayerScore(lastMsptName,moveDistanceObj));*/
         //scoreboard.getPlayerScore(lastMsptName = "mspt" + (int) getTickTime() ,moveDistanceObj).setScore(-1);

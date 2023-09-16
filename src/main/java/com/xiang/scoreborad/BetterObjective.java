@@ -1,6 +1,5 @@
 package com.xiang.scoreborad;
 
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScoreboardPlayerUpdateS2CPacket;
@@ -8,7 +7,6 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +33,22 @@ public class BetterObjective {
      */
     ScoreboardObjective scoreObjective;
 
+    /**
+     * 占位符
+     */
+    String placeholder = "";
+    /**
+     * 左对齐
+     */
+    public static final int LEFT = 0;
+    /**
+     * 右对齐
+     */
+    public static final int RIGHT = 1;
+    /**
+     * 居中对齐
+     */
+    public static final int CENTER = 2;
 
     /**
      * 创建更好的计分项
@@ -42,12 +56,26 @@ public class BetterObjective {
      * @param size 分数列表的大小 (固定)
      */
     public BetterObjective(String objectiveName, String displayName, int size) {
+        //构建占位符
+        setPlaceholderWidth(40);
         scoreList = new String[size];
-        Arrays.fill(scoreList, "");
+        for (int i = 0; i < scoreList.length; i++) {
+            scoreList[i] = placeholder.substring(i);
+        }
         scoreObjective = new ScoreboardObjective(new Scoreboard(), objectiveName,
                 ScoreboardCriterion.DUMMY,
                 Text.of((displayName == null ? "" : displayName)),
                 ScoreboardCriterion.RenderType.INTEGER);
+    }
+
+    /**
+     * 设置占位符宽度 (影响计分项宽度)
+     *
+     * @param width 长度
+     */
+    public void setPlaceholderWidth(int width) {
+        //构建占位符
+        placeholder = " ".repeat(width);
     }
 
     /**
@@ -93,10 +121,10 @@ public class BetterObjective {
      *
      * @param player 玩家
      */
-    private void syncAllScore(ServerPlayerEntity player) {
+    public void syncAllScore(ServerPlayerEntity player) {
         for (int i = 0; i < scoreList.length; i++) {
             player.networkHandler.sendPacket(
-                    new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective.getName(), scoreList[i], i)
+                    new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), scoreList[i], i)
             );
         }
     }
@@ -106,12 +134,23 @@ public class BetterObjective {
      *
      * @param index        分数列表的索引
      * @param displayTitle 显示的标题
+     * @param alignment    对齐方式 0左对齐 1右对齐 2居中
      */
-    public void setScoreObject(int index, String displayTitle) {
+    public void setScore(int index, String displayTitle, int alignment) {
+        //加工显示标题   对齐方式 0左对齐 1右对齐
+        String str = placeholder.substring(displayTitle.length());
+        switch (alignment) {
+            case 0 -> displayTitle = displayTitle + str;
+            case 1 -> displayTitle = str + displayTitle;
+            case 2 -> displayTitle = str.substring(str.length() / 2) + displayTitle + str.substring(str.length() / 2);
+        }
+
         //检查索引
         if (index < 0 || index >= scoreList.length) {
             throw new IllegalArgumentException("索引越界");
         }
+
+
         //检查是否修改
         if (!scoreList[index].equals(displayTitle)) {
             //更新分数
@@ -121,6 +160,16 @@ public class BetterObjective {
         }
     }
 
+    public static String format(String displayTitle, int width, int alignment) {
+        //加工显示标题   对齐方式 0左对齐 1右对齐
+        String str = " ".repeat(width).substring(displayTitle.length());
+        return switch (alignment) {
+            case 0 -> displayTitle + str;
+            case 1 -> str + displayTitle;
+            case 2 -> str.substring(str.length() / 2) + displayTitle + str.substring(str.length() / 2);
+            default -> throw new IllegalStateException("Unexpected value: " + alignment);
+        };
+    }
 
     /**
      * 修改计分板显示名
