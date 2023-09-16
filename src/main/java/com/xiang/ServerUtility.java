@@ -5,6 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,8 +166,8 @@ public class ServerUtility implements ModInitializer {
     public static void startBackupTimer() {
         backupTimer = new Thread(() -> {
             while (!stopBackupT) {
-                playerManager.broadcast(Text.of("开始备份"), false);
-                playerManager.broadcast(Text.of(("备份花费:" + ServerUtility.createBackup() + "ms")), false);
+                playerManager.broadcast(Text.of(Formatting.GOLD +"开始备份"), false);
+                playerManager.broadcast(Text.of((Formatting.GREEN+"备份花费:"+Formatting.RESET + ServerUtility.createBackup() + "ms")), false);
                 try {
                     Thread.sleep(60000 * 15);
                 } catch (InterruptedException e) {
@@ -206,7 +207,23 @@ public class ServerUtility implements ModInitializer {
     }*/
 
     public static long createBackup() {
+        File[] backups = Objects.requireNonNull(backupsPath.listFiles());
+        if (backups.length >= 5){
+            //保留五个备份
+            ArrayList<Date> dates = new ArrayList<>();
+            HashMap<Date,File> fileMap = new HashMap<>();
+            for (File file:backups){
+                //LOGGER.info("处理文件:" + file);
+                Date date = new Date(file.lastModified());
+                dates.add(date);
+                fileMap.put(date,file);
+            }
+            dates.sort(Date::compareTo);
+            File earliestFile = fileMap.get(dates.get(0));
+            earliestFile.delete();
+        }
         Date date = new Date();
+
         long preTime = System.currentTimeMillis();
         File backupFile = new File("backups/" + date.toString().replaceAll(" ", "--").replaceAll(":", "-") + ".zip");
         try {

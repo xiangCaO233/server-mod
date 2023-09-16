@@ -7,6 +7,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.xiang.ServerUtility;
 import com.xiang.navigate.Navigator;
 import com.xiang.navigate.PlayerNavDestination;
+import com.xiang.scoreborad.AllObjective;
+import com.xiang.scoreborad.BetterObjective;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,6 +16,8 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextVisitFactory;
+import net.minecraft.util.Formatting;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -55,7 +59,10 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                             )
             );
             dispatcher.register(
-                    literal("setscoreboard").
+                    literal("setscoreboard").executes((context)->{
+
+                                return 1;
+                            }).
                             then(argument("scoreboardobjective/auto-loop", word()).suggests(new ScoreBoardCommandSugp()).executes((commandContext -> {
                                 String name = Objects.requireNonNull(commandContext.getSource().getPlayer()).getEntityName();
                                 String[] args = commandContext.getInput().split(" ");
@@ -74,9 +81,9 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
             );
             dispatcher.register(
                     literal("backup").executes(commandContext -> {
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of("开始备份"), false);
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of(("备份花费:" + ServerUtility.createBackup() + "ms")), false);
-                        LOGGER.info(("备份花费:" + ServerUtility.createBackup() + "ms"));
+                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of(Formatting.GOLD +"开始备份"), false);
+                        long timeUsed = ServerUtility.createBackup();
+                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of((Formatting.GREEN+"备份花费:"+Formatting.RESET + timeUsed + "ms")), false);
                         return 1;
                     })
             );
@@ -116,6 +123,9 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
             //setscoreboard指令 补全内容
             suggestionsBuilder.suggest("auto-loop");
+            for (String key: AllObjective.objectiveMap.keySet()){
+                suggestionsBuilder.suggest(key);
+            }
             return suggestionsBuilder.buildFuture();
         }
     }
