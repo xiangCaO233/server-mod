@@ -38,9 +38,6 @@ public abstract class PlayerManagerMixin {
         String playerName = player.getName().getString();
 
         betterObjective.addDisplayPlayer(player);
-        betterObjective.setScore(0,"AAAA",0);
-        betterObjective.setScore(1,"AAAA",1);
-        betterObjective.setScore(2,"AAAA",2);
 
         playerNameMapping.put(player.getUuid(),playerName);
         checkStatistic(player);
