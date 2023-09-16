@@ -1,13 +1,9 @@
 package com.xiang;
 
 import com.xiang.scoreborad.BetterObjective;
-import com.xiang.scoreborad_old.BetterScoreboard;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,7 +157,9 @@ public class ServerUtility implements ModInitializer {
         if (!takeDamageStatisticMap.containsKey(name)){
             takeDamageStatisticMap.put(name,0f);
         }
-
+        if (!killCountStatisticMap.containsKey(name)){
+            killCountStatisticMap.put(name,0);
+        }
     }
 
     public static void startBackupTimer() {
@@ -176,6 +174,7 @@ public class ServerUtility implements ModInitializer {
                 }
             }
         });
+        //Text.translatable(, )
     }
 
 /*	public static void startScoreBoardTimer() {
@@ -261,4 +260,5 @@ public class ServerUtility implements ModInitializer {
     public interface SetAutoCallback{
         void server_mod$updateTimer();
     }*/
+
 }

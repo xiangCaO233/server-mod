@@ -12,7 +12,6 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * 更好的计分项
@@ -51,6 +50,15 @@ public class BetterObjective {
     public static final int CENTER = 2;
 
     /**
+     * 分数项处理器列表
+     */
+    ArrayList<ObjectiveHandler> objectiveHandler = new ArrayList<>();
+    /**
+     * 累增的周期数
+     */
+    int cycle = 0;
+
+    /**
      * 创建更好的计分项
      *
      * @param size 分数列表的大小 (固定)
@@ -62,10 +70,16 @@ public class BetterObjective {
         for (int i = 0; i < scoreList.length; i++) {
             scoreList[i] = placeholder.substring(i);
         }
-        scoreObjective = new ScoreboardObjective(new Scoreboard(), objectiveName,
-                ScoreboardCriterion.DUMMY,
-                Text.of((displayName == null ? "" : displayName)),
-                ScoreboardCriterion.RenderType.INTEGER);
+        scoreObjective = new ScoreboardObjective(new Scoreboard(), objectiveName, ScoreboardCriterion.DUMMY, Text.of((displayName == null ? "" : displayName)), ScoreboardCriterion.RenderType.INTEGER);
+    }
+
+    /**
+     * 增加一个分数项处理器
+     *
+     * @param handler 分数项处理器
+     */
+    public void addHeader(ObjectiveHandler handler) {
+        objectiveHandler.add(handler);
     }
 
     /**
@@ -95,9 +109,7 @@ public class BetterObjective {
      * @param playerName 分数的玩家名
      */
     private void removeMCscore(String playerName) {
-        sendPacket(
-                new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective.getName(), playerName, 0)
-        );
+        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective.getName(), playerName, 0));
     }
 
     /**
@@ -107,13 +119,7 @@ public class BetterObjective {
      * @param score      分数
      */
     private void modifyMCscore(String playerName, int score) {
-        sendPacket(
-                new ScoreboardPlayerUpdateS2CPacket(
-                        ServerScoreboard.UpdateMode.CHANGE,
-                        scoreObjective.getName(),
-                        playerName,
-                        score)
-        );
+        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), playerName, score));
     }
 
     /**
@@ -123,9 +129,7 @@ public class BetterObjective {
      */
     public void syncAllScore(ServerPlayerEntity player) {
         for (int i = 0; i < scoreList.length; i++) {
-            player.networkHandler.sendPacket(
-                    new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), scoreList[i], i)
-            );
+            player.networkHandler.sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), scoreList[i], i));
         }
     }
 
@@ -186,6 +190,15 @@ public class BetterObjective {
         };
     }
 
+    /**
+     * 更新分数 (通过分数项处理器)
+     */
+    public void updateScore() {
+        for (ObjectiveHandler handler : objectiveHandler) {
+            handler.onObjectiveUpdate(this, cycle % handler.getMaxCycle());
+        }
+        cycle++;
+    }
 
     /**
      * 修改计分板显示名
@@ -194,8 +207,7 @@ public class BetterObjective {
      */
     public void changeScoreboardShowName(@NotNull String name) {
         //检查是否有改动
-        if (name.equals(scoreObjective.getDisplayName().getString()))
-            return;
+        if (name.equals(scoreObjective.getDisplayName().getString())) return;
         scoreObjective.setDisplayName(Text.of(name));
         //更新名字
         sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective, 2));
@@ -208,8 +220,7 @@ public class BetterObjective {
      */
     public void addDisplayPlayer(ServerPlayerEntity player) {
         //判断玩家 重复
-        if (playerList.contains(player))
-            return;
+        if (playerList.contains(player)) return;
         //添加到列表
         playerList.add(player);
         //发送添加玩家
@@ -219,4 +230,6 @@ public class BetterObjective {
         //设置计分项显示的槽位
         player.getScoreboard().setObjectiveSlot(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, scoreObjective);
     }
+
+
 }

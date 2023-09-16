@@ -1,34 +1,30 @@
 package com.xiang.mixin;
 
 import com.xiang.navigate.Navigator;
+import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
+import com.xiang.util.Info;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.slf4j.helpers.SubstituteLogger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 import static com.xiang.ServerUtility.*;
 import static com.xiang.navigate.Navigator.stopNavThread;
@@ -89,22 +85,31 @@ public abstract class ServerMixin {
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
         LOGGER.info("指令设置不显示死亡消息");
         getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, playerManager.getServer());
-
+        Info.server = getPlayerManager().getServer();
     }
 
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        setMotd(new Random().nextInt(2000) + "");
+        //更新服务器描述信息
+        setMotd(Info.getRunTime() + " " + Info.getTPS() + " " + Info.getMSPT());
+        //更新所有的计分项
+        AllObjective.objectiveHashMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
+            stringBetterObjectiveEntry.getValue().updateScore();
+        });
+        /*
 
         if (playerManager.getPlayerList().size() > 0) {
-            betterObjective.setScore(3, "你好 " + playerManager.getPlayerList().get(0).getEntityName() + " !", BetterObjective.LEFT);
-            betterObjective.setScore(4, "ping: " + playerManager.getPlayerList().get(0).pingMilliseconds+" ms", BetterObjective.LEFT);
-            betterObjective.setScore(5, "x: " + BetterObjective.format(String.format("%.2f",playerManager.getPlayerList().get(0).getX()),8,BetterObjective.RIGHT) +
-                    " y: " + BetterObjective.format(String.format("%.2f",playerManager.getPlayerList().get(0).getY()),8,BetterObjective.RIGHT)  +
-                    " z: " +BetterObjective.format(String.format("%.2f",playerManager.getPlayerList().get(0).getZ()),8,BetterObjective.RIGHT) , BetterObjective.LEFT);
-            betterObjective.setScore(6, "IP: " + playerManager.getPlayerList().get(0).getIp(), BetterObjective.LEFT);
-        }
+            betterObjective.setScore(3, "你好 NMSL hhh " + Info.getWorldTime() + " !", BetterObjective.LEFT);
+            betterObjective.setScore(2, "你好 NMSL hhh " + Info.getRunTime() + " !", BetterObjective.LEFT);
+            betterObjective.setScore(1, "你好 NMSL hhh " + Info.timeUnitConversion(600) + " !", BetterObjective.LEFT);
+            betterObjective.setScore(1, "你好 NMSL hhh " + Info.formatPercentage(0.1) + " !", BetterObjective.LEFT);
+            betterObjective.setScore(6, "你好 NMSL hhh " + Info.formatPercentage(0.4) + " !", BetterObjective.LEFT);
+            betterObjective.setScore(7, "你好 NMSL hhh " + Info.formatPercentage(0.6) + " !", BetterObjective.LEFT);
+            betterObjective.setScore(8, "你好 NMSL hhh " + Info.formatPercentage(0.9) + " !", BetterObjective.LEFT);
+            betterObjective.setScore(9, "你好 NMSL hhh " + Info.formatPercentage(1.0) + " !", BetterObjective.LEFT);
+
+        }*/
 
     }
 
