@@ -64,17 +64,18 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                                 return 1;
                             }).
                             then(argument("scoreboardobjective/auto-loop", word()).suggests(new ScoreBoardCommandSugp()).executes((commandContext -> {
-                                String name = Objects.requireNonNull(commandContext.getSource().getPlayer()).getEntityName();
+                                PlayerEntity player = commandContext.getSource().getPlayer();
+                                String name = Objects.requireNonNull(player).getEntityName();
                                 String[] args = commandContext.getInput().split(" ");
                                 if (name == null) {
                                     return 0;
                                 }
                                 if ("auto-loop".equals(args[1])) {
                                     //设置auto
-
+                                    player.sendMessage(Text.of("已设置自动轮换计分板"));
                                 } else {
                                     //指定计分板
-
+                                    player.sendMessage(Text.of("已设置指定计分板:" + args[1]));
                                 }
                                 return 1;
                             })))
