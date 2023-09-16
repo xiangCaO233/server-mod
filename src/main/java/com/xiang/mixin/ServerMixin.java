@@ -82,13 +82,14 @@ public abstract class ServerMixin {
         LOGGER.info("指令设置不显示死亡消息");
         getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, playerManager.getServer());
         Info.server = getPlayerManager().getServer();
+        AllObjective.initialize();
     }
 
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         //更新服务器描述信息
-        setMotd(Info.getRunTime() + " " + Info.getTPS() + " " + Info.getMSPT());
+        setMotd("Infinity Heaven Server " + "世界时间: " + Info.getWorldTime() + " 运行: " + Info.getRunTime() + " TPS:" + Info.getTPS() + " MSPT:" + Info.getMSPT());
         //更新所有的计分项
         AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
             stringBetterObjectiveEntry.getValue().updateScore();

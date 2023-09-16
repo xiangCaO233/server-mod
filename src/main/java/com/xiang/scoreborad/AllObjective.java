@@ -1,5 +1,7 @@
 package com.xiang.scoreborad;
 
+import com.xiang.util.Info;
+
 import java.util.HashMap;
 
 import static com.xiang.scoreborad.BetterObjective.*;
@@ -12,18 +14,21 @@ public class AllObjective {
         ObjectiveHandler bottomInfo = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
-                objective.setScore(0,"" , LEFT);
+                objective.setScore(0, "MSPT : " + Info.getMSPT(), LEFT);
+                objective.setScore(1, "cycle : " + cycle, LEFT);
             }
 
             @Override
             public int getMaxCycle() {
-                return 0;
+                return 10;
             }
         };
 
 
-        BetterObjective mainInfo = new BetterObjective("mainInfo", "mainInfo", 16);
+        BetterObjective mainInfo = new BetterObjective("mainInfo", "mainInfo", 15);
         mainInfo.addHeader(bottomInfo);
+
+        objectiveMap.put("mainInfo", mainInfo);
     }
 
 }
