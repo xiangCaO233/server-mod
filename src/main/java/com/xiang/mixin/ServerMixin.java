@@ -1,29 +1,32 @@
 package com.xiang.mixin;
 
-import net.minecraft.entity.player.PlayerEntity;
+import com.xiang.ServerUtility;
+import com.xiang.navigate.Navigator;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Random;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
+import static com.xiang.navigate.Navigator.stopNavThread;
 
 /**
  * 服务端注入
@@ -32,10 +35,6 @@ import static com.xiang.ServerUtility.*;
  */
 @Mixin(MinecraftServer.class)
 public abstract class ServerMixin {
-    @Unique
-    Thread timer;
-    @Unique
-    boolean stop;
     //static MinecraftServer server;
     @Shadow
     private PlayerManager playerManager;
@@ -47,33 +46,30 @@ public abstract class ServerMixin {
     @Shadow
     public abstract GameRules getGameRules();
 
-    @Shadow public abstract float getTickTime();
+    @Shadow
+    public abstract float getTickTime();
+
+    @Shadow
+    public abstract PlayerManager getPlayerManager();
+
+    @Shadow
+    public abstract int getTicks();
+
+    @Shadow
+    public abstract Optional<Path> getIconFile();
 
     @Inject(at = @At("TAIL"), method = "loadWorld")
     private void init(CallbackInfo info) {
 
+        Navigator.playerManager = getPlayerManager();
         LOGGER.info("server mixin loading");
+        LOGGER.info("backup thread starting");
+        startBackupTimer();
 
-        //检查配置文件
-        if (!config.exists()) {
-            try {
-                config.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        //加载配置文件
-        FileInputStream fis;
-        try {
-            fis = new FileInputStream(config);
-            prop.load(fis);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        //new ScoreboardThread().start();
 
         //初始化积分榜
-
+        ServerUtility.serverScoreboard = this.scoreboard;
         //生命值
         healthObj = scoreboard.getObjective("health");
         if (healthObj == null) {
@@ -154,8 +150,14 @@ public abstract class ServerMixin {
             String data = (String) prop.get(playerName);
             if (data == null) {
                 moveStatisticMap.put(playerName, (double) scoreboard.getPlayerScore(playerName, moveDistanceObj).getScore());
-            }else {
-                moveStatisticMap.put(playerName,  Double.valueOf((data.split("\\|")[0])));
+            } else {
+                String moveData = (data.split("\\|")[0]);
+                moveStatisticMap.put(
+                        playerName,
+                        Double.valueOf(
+                                "null".equals(moveData) ? "0" : moveData
+                        )
+                );
             }
         }
 
@@ -185,8 +187,15 @@ public abstract class ServerMixin {
             String data = (String) prop.get(playerName);
             if (data == null) {
                 damageStatisticMap.put(playerName, (float) scoreboard.getPlayerScore(playerName, damageObj).getScore());
-            }else {
-                damageStatisticMap.put(playerName,  Float.valueOf((data.split("\\|")[1])));
+            } else {
+                System.out.println("处理damage配置");
+                String damageData = (data.split("\\|")[1]);
+                damageStatisticMap.put(
+                        playerName,
+                        Float.valueOf(
+                                "null".equals(damageData) ? "0" : damageData
+                        )
+                );
             }
         }
 
@@ -206,8 +215,15 @@ public abstract class ServerMixin {
             String data = (String) prop.get(playerName);
             if (data == null) {
                 takeDamageStatisticMap.put(playerName, (float) scoreboard.getPlayerScore(playerName, takeDamageObj).getScore());
-            }else {
-                takeDamageStatisticMap.put(playerName,  Float.valueOf((data.split("\\|")[2])));
+            } else {
+                System.out.println("处理takeDamage配置");
+                String takeDamage = (data.split("\\|")[2]);
+                takeDamageStatisticMap.put(
+                        playerName,
+                        Float.valueOf(
+                                "null".equals(takeDamage) ? "0" : takeDamage
+                        )
+                );
             }
         }
 
@@ -222,7 +238,7 @@ public abstract class ServerMixin {
         }
         scoreboardObjectives.add(killCountObj);
 
-        startScoreBoardTimer();
+        ServerUtility.startScoreBoardTimer();
 
         LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
@@ -231,45 +247,70 @@ public abstract class ServerMixin {
 
     }
 
+    @Inject(at = @At("TAIL"), method = "tick")
+    private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+        List<ServerPlayerEntity> playerList = playerManager.getPlayerList();
+            LinkedHashMap<Integer, String> moveMap = new LinkedHashMap<>();
+            ArrayList<Integer> moveList = new ArrayList<>();
+            for (ServerPlayerEntity player : playerList) {
+                int distance = getDistance(player);
+                moveList.add(distance);
+                moveMap.put(distance,player.getEntityName());
+            }
+            moveList.sort(Integer::compareTo);
+
+            for (int i = 0; i < 8; i++) {
+                if (playerList.size() == i){
+                    return;
+                }
+                scoreboard.setObjectiveSlot(
+                        Scoreboard.SIDEBAR_DISPLAY_SLOT_ID,moveDistanceObj
+                );
+                scoreboard.setObjectiveSlot(
+                        Scoreboard.LIST_DISPLAY_SLOT_ID,healthObj
+                );
+                betterScoreboard.scoreObjects.changeScoreObject(
+                        "moveDistance", moveMap.get(moveList.get(i)) + ":" + moveStatisticMap.get(moveMap.get(moveList.get(i))) / 100 , 9-i
+                );
+                betterScoreboard.scoreObjects.changeScoreObject(
+                        "placedBlock", moveMap.get(moveList.get(i)) + ":" + moveStatisticMap.get(moveMap.get(moveList.get(i))) / 100 , 9-i
+                );
+            }
+
+        /*scoreboard.getAllPlayerScores(moveDistanceObj).remove(scoreboard.getPlayerScore(lastMsptName,moveDistanceObj));*/
+        //scoreboard.getPlayerScore(lastMsptName = "mspt" + (int) getTickTime() ,moveDistanceObj).setScore(-1);
+    }
+
+    @Unique
+    private int getDistance(ServerPlayerEntity player) {
+        int stat = player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.CROUCH_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.SPRINT_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_ON_WATER_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.FALL_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.CLIMB_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.FLY_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.WALK_UNDER_WATER_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.MINECART_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.BOAT_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.PIG_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.HORSE_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.AVIATE_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.SWIM_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.STRIDER_ONE_CM);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.JUMP);
+        stat += player.getStatHandler().getStat(Stats.CUSTOM, Stats.DROP);
+        return stat;
+    }
+
     /**
      * 开始计分板刷新计时器
      */
-    @Unique
-    private void startScoreBoardTimer() {
-
-        timer = new Thread(()->{
-            while (!stop){
-                for (ServerPlayerEntity player : playerManager.getPlayerList()) {
-                    ScoreboardObjective objective = scoreboardObjectives.get(scoreboardObjectiveIndex);
-                    if (objective != null) {
-                        player.getScoreboard().setObjectiveSlot(
-                                Scoreboard.getDisplaySlotId("sidebar"), objective
-                        );
-                    }
-                }
-                if (scoreboardObjectiveIndex >= scoreboardObjectives.size() - 1) {
-                    scoreboardObjectiveIndex = 0;
-                } else {
-                    scoreboardObjectiveIndex++;
-                }
-                try {
-                    //随机5~12.5s
-                    Thread.sleep(
-                            new Random().nextInt(5000,12500)
-                    );
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-        timer.start();
-    }
 
     @Inject(at = @At("TAIL"), method = "stop")
     private void onServerStop(boolean waitForShutdown, CallbackInfo ci) {
         //保存浮点数据
-        for (PlayerEntity player : playerManager.getPlayerList()) {
-            String playerName = player.getEntityName();
+        for (String playerName : usedPlayers) {
             String data =
                     moveStatisticMap.get(playerName) + "|" +
                             damageStatisticMap.get(playerName) + "|" +
@@ -293,7 +334,10 @@ public abstract class ServerMixin {
             }
         }
         //关闭计时器
-        stop = true;
+        stopScoreboardT = true;
+        stopBackupT = true;
+        stopNavThread = true;
+
     }
 
 }

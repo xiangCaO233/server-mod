@@ -28,6 +28,7 @@ public class BlockMixin {
         ScoreboardObjective objective = player.getScoreboard().getObjective("minedCount");
         if (objective != null) {
             ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
+
             // 增加玩家的积分
             playerScore.incrementScore(1); // 1表示每次挖掘增加的分数
         }

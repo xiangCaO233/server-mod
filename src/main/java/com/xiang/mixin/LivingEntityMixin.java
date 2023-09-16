@@ -21,7 +21,6 @@ import static com.xiang.ServerUtility.damageStatisticMap;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin{
 
-    @Shadow protected abstract void playBlockFallSound();
 
     @Inject(at=@At("TAIL"),method = "damage")
     private void entityOnDamaged(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir){
@@ -64,4 +63,5 @@ public abstract class LivingEntityMixin{
             }
         }
     }
+
 }

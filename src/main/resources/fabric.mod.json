@@ -16,7 +16,8 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.xiang.ServerUtility"
+			"com.xiang.ServerUtility",
+          "com.xiang.command.AllCommands"
 		]
 	},
 	"mixins": [
