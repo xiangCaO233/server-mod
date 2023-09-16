@@ -2,7 +2,6 @@ package com.xiang.mixin;
 
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.AllObjective;
-import com.xiang.scoreborad.BetterObjective;
 import com.xiang.util.Info;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -20,11 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 import static com.xiang.ServerUtility.*;
 import static com.xiang.navigate.Navigator.stopNavThread;
@@ -94,7 +90,7 @@ public abstract class ServerMixin {
         //更新服务器描述信息
         setMotd(Info.getRunTime() + " " + Info.getTPS() + " " + Info.getMSPT());
         //更新所有的计分项
-        AllObjective.objectiveHashMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
+        AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
             stringBetterObjectiveEntry.getValue().updateScore();
         });
         /*
