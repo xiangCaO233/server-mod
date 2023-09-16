@@ -25,24 +25,30 @@ public class BlockMixin {
 
     @Inject(at = @At("TAIL"), method = "afterBreak")
     private void playerBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
-        ScoreboardObjective objective = player.getScoreboard().getObjective("minedCount");
+        //更新玩家挖掘计分板
+
+
+        /*ScoreboardObjective objective = player.getScoreboard().getObjective("minedCount");
         if (objective != null) {
             ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
 
             // 增加玩家的积分
             playerScore.incrementScore(1); // 1表示每次挖掘增加的分数
-        }
+        }*/
     }
 
     @Inject(at = @At("TAIL"), method = "onPlaced")
     private void playerPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack, CallbackInfo ci) {
+        //更新玩家放置计分板
         if (placer instanceof PlayerEntity player) {
-            ScoreboardObjective objective = player.getScoreboard().getObjective("placedCount");
+
+
+            /*ScoreboardObjective objective = player.getScoreboard().getObjective("placedCount");
             if (objective != null) {
                 ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
                 // 增加玩家的积分
                 playerScore.incrementScore(1); // 1表示每次放置增加的分数
-            }
+            }*/
         }
 
     }

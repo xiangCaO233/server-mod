@@ -34,18 +34,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerPlayerMixin extends PlayerMixin{
     @Shadow @Final public MinecraftServer server;
 
-    @Shadow public abstract void sendMessageToClient(Text message, boolean overlay);
-
-    @Shadow public abstract Either<PlayerEntity.SleepFailureReason, Unit> trySleep(BlockPos pos);
-
-    @Shadow @Final private static Logger LOGGER;
-
+    /**
+     * tick玩家注入
+     * @param info
+     */
     @Inject(at = @At("TAIL"), method = "tick")
     private void playerTick(CallbackInfo info) {
-        /*scoreboard.addObjective(
 
-        );*/
     }
+
+    /**
+     * 玩家死亡注入
+     * @param damageSource 伤害来源
+     * @param callbackInfo
+     */
     @Inject(at = @At("TAIL"), method = "onDeath")
     private void playerDead(DamageSource damageSource, CallbackInfo callbackInfo) {
         //玩家死亡消息

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 import static com.xiang.ServerUtility.*;
-import static com.xiang.ServerUtility.stopScoreboardT;
 import static com.xiang.navigate.Navigator.playerManager;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -29,10 +28,11 @@ import static net.minecraft.server.command.CommandManager.literal;
 /**
  * @author xiang2333
  */
-public class AllCommands implements ModInitializer, Navigator.NewNavCallback, ServerUtility.SetAutoCallback {
+public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
     @Override
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            //注册指令
             dispatcher.register(
                     literal("nav").executes((context) -> {
                                 context.getSource().sendMessage(
@@ -64,25 +64,10 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback, Se
                                 }
                                 if ("auto-loop".equals(args[1])) {
                                     //设置auto
-                                    if (!autoScoreBoardPlayers.contains(name)) {
-                                        autoScoreBoardPlayers.add(name);
-                                        commandContext.getSource().sendMessage(Text.literal("设置自动切换计分板"));
-                                        ServerUtility.newAuto(this);
-                                    }
+
                                 } else {
                                     //指定计分板
-                                    Scoreboard scoreboard = Objects.requireNonNull(playerManager.getPlayer(name)).getScoreboard();
-                                    ScoreboardObjective objective = scoreboard.getObjective(args[1]);
-                                    if (objective != null) {
-                                        autoScoreBoardPlayers.remove(name);
-                                        scoreboard.setObjectiveSlot(
-                                                Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, objective
-                                        );
-                                        commandContext.getSource().sendMessage(Text.literal("设置计分板:" + args[1]));
-                                        ServerUtility.newAuto(this);
-                                    } else {
-                                        commandContext.getSource().sendMessage(Text.literal(args[1] + "计分项不存在"));
-                                    }
+
                                 }
                                 return 1;
                             })))
@@ -98,11 +83,14 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback, Se
         });
     }
 
+    /**
+     * 更新导航线程回调内容
+     */
     @Override
     public void updateTimer() {
         if (Navigator.DESTINATIONS.size() > 0) {
             if (Navigator.stopNavThread) {
-                //                如果是停止状态
+                //如果是停止状态
                 Navigator.stopNavThread = false;
                 Navigator.startTimer();
             }
@@ -111,24 +99,11 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback, Se
         }
     }
 
-    @Override
-    public void server_mod$updateTimer() {
-        if (autoScoreBoardPlayers.size() > 0) {
-            if (stopScoreboardT) {
-//                如果是停止状态
-                stopScoreboardT = false;
-                ServerUtility.startScoreBoardTimer();
-            }
-
-        } else {
-            stopScoreboardT = true;
-        }
-    }
-
     static class NavCommandSugp implements SuggestionProvider<ServerCommandSource> {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
             suggestionsBuilder.suggest("stop");
+            //导航指令补全内容
             for (PlayerEntity player : playerManager.getPlayerList()) {
                 suggestionsBuilder.suggest(player.getEntityName());
             }
@@ -139,9 +114,7 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback, Se
     static class ScoreBoardCommandSugp implements SuggestionProvider<ServerCommandSource> {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
-            for (ScoreboardObjective objective : scoreboardObjectives) {
-                suggestionsBuilder.suggest(objective.getName());
-            }
+            //setscoreboard指令 补全内容
             suggestionsBuilder.suggest("auto-loop");
             return suggestionsBuilder.buildFuture();
         }

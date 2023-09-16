@@ -19,13 +19,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TradeOutputSlotMixin {
     @Inject(at=@At("TAIL"),method = "onTakeItem")
     private void onPlayerTrade(PlayerEntity player, ItemStack stack, CallbackInfo ci){
-        //玩家交易后
-        ScoreboardObjective objective = player.getScoreboard().getObjective("tradeCount");
+        //更新玩家交易计分板
+
+        /*ScoreboardObjective objective = player.getScoreboard().getObjective("tradeCount");
         if (objective != null) {
             ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
             // 增加玩家的积分
             playerScore.incrementScore(1);
-        }
+        }*/
     }
 
 }

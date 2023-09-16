@@ -36,13 +36,16 @@ public abstract class LivingEntityMixin{
                 } else {
                     damageStatisticMap.put(playerName, amount);
                 }
-                //更新计分板
-                ScoreboardObjective objective = player.getScoreboard().getObjective("damage");
+                //更新输出伤害计分板
+
+
+
+                /*ScoreboardObjective objective = player.getScoreboard().getObjective("damage");
                 if (objective != null) {
                     ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(playerName, objective);
                     // 设置玩家的积分
                     playerScore.setScore(damageStatisticMap.get(playerName).intValue());
-                }
+                }*/
             }
         }
     }
@@ -53,13 +56,15 @@ public abstract class LivingEntityMixin{
         if (sourceAttacker != null) {
             if (sourceAttacker instanceof PlayerEntity player){
                 //玩家攻击
-                //更新计分板
-                ScoreboardObjective objective = player.getScoreboard().getObjective("killCount");
+                //更新击杀计分板
+
+
+                /*ScoreboardObjective objective = player.getScoreboard().getObjective("killCount");
                 if (objective != null) {
                     ScoreboardPlayerScore playerScore = player.getScoreboard().getPlayerScore(player.getEntityName(), objective);
                     // 增加玩家的积分
                     playerScore.incrementScore(1);
-                }
+                }*/
             }
         }
     }

@@ -16,6 +16,7 @@ public abstract class ServerPlayNetworkHandlerMixin implements EntityTrackingLis
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Z)V"))
     public void replaceBroadcast(PlayerManager instance, Text message, boolean overlay) {
+
     }
 /*
 

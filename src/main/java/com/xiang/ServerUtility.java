@@ -28,67 +28,82 @@ public class ServerUtility implements ModInitializer {
 	public static final String MOD_ID = "server-utility";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	public static String lastMsptName;
+//	public static String lastMsptName;
 	public static File config;
 	public static File backupsPath;
 	public static File worldPath;
 	public static Properties prop;
+	//记录来过的玩家
 	public static ArrayList<String> usedPlayers;
-	public static ArrayList<String> autoScoreBoardPlayers;
-	static Thread updateScoreboardTimer;
+//	public static ArrayList<String> autoScoreBoardPlayers;
+//	static Thread updateScoreboardTimer;
 	static Thread backupTimer;
-	public static ServerScoreboard serverScoreboard;
+//	public static ServerScoreboard serverScoreboard;
 	public static BetterScoreboard betterScoreboard;
-	public static boolean stopScoreboardT;
+//	public static boolean stopScoreboardT;
 	public static boolean stopBackupT;
-	public static int scoreboardObjectiveIndex=0;
-	//生命值
+//	public static int scoreboardObjectiveIndex=0;
+//	//生命值
 	public static ScoreboardObjective healthObj;
-	//死亡数
-	public static ScoreboardObjective deathCountObj;
-	//挖掘数
-	public static ScoreboardObjective minedCountObj;
-	//放置数
-	public static ScoreboardObjective placedCountObj;
-	//交易数
-	public static ScoreboardObjective tradeCountObj;
-	//移动统计
-	public static ScoreboardObjective moveDistanceObj;
+//	//死亡数
+//	public static ScoreboardObjective deathCountObj;
+//	//挖掘数
+//	public static ScoreboardObjective minedCountObj;
+//	//放置数
+//	public static ScoreboardObjective placedCountObj;
+//	//交易数
+//	public static ScoreboardObjective tradeCountObj;
+//	//移动统计
+//	public static ScoreboardObjective moveDistanceObj;
+	/**
+	 * 玩家移动统计缓存
+	 */
 	public static HashMap<String,Double> moveStatisticMap;
-	//经验获取数
-	public static ScoreboardObjective expGetCountObj;
-	//伤害榜
-	public static ScoreboardObjective damageObj;
+//	//经验获取数
+//	public static ScoreboardObjective expGetCountObj;
+//	//伤害榜
+//	public static ScoreboardObjective damageObj;
+	/**
+	 * 玩家输出伤害缓存
+	 */
 	public static HashMap<String,Float> damageStatisticMap;
-	//受伤榜
-	public static ScoreboardObjective takeDamageObj;
+//	//受伤榜
+//	public static ScoreboardObjective takeDamageObj;
+	/**
+	 * 玩家承受伤害缓存
+	 */
 	public static HashMap<String,Float> takeDamageStatisticMap;
-	//击杀数
-	public static ScoreboardObjective killCountObj;
-	//等级榜
-	public static ScoreboardObjective levelObj;
-	//榜列表
-	public static ArrayList<ScoreboardObjective> scoreboardObjectives;
+//	//击杀数
+//	public static ScoreboardObjective killCountObj;
+//	//等级榜
+//	public static ScoreboardObjective levelObj;
+//	//榜列表
+//	public static ArrayList<ScoreboardObjective> scoreboardObjectives;
 
 	@Override
 	public void onInitialize() {
 		LOGGER.info("server utility initializing");
-		lastMsptName="";
+//		lastMsptName="";
 		prop = new Properties();
-		stopScoreboardT = true;
+//		stopScoreboardT = true;
 		usedPlayers = new ArrayList<>();
-		autoScoreBoardPlayers = new ArrayList<>();
+//		autoScoreBoardPlayers = new ArrayList<>();
 		moveStatisticMap = new HashMap<>();
 		damageStatisticMap = new HashMap<>();
 		takeDamageStatisticMap = new HashMap<>();
-		scoreboardObjectives = new ArrayList<>();
+//		scoreboardObjectives = new ArrayList<>();
 
 		config = new File("config/sudata.cfg");
+		File configPath = config.getParentFile();
 		backupsPath = new File("backups");
 		worldPath = new File("world");
 
 
 
+		//检查配置文件路径
+		if (!configPath.exists()){
+			configPath.mkdir();
+		}
 		//检查配置文件
 		if (!config.exists()) {
 			try {
@@ -113,12 +128,11 @@ public class ServerUtility implements ModInitializer {
 				}
 			}
 		}
-
 		//检查备份文件夹目录
 		if (!(backupsPath.exists()&& backupsPath.isDirectory())){
 			backupsPath.mkdir();
 		}
-
+		//初始化better计分板
 		betterScoreboard = new BetterScoreboard("LifeGarden","--LifeGarden--");
 	}
 
@@ -136,7 +150,7 @@ public class ServerUtility implements ModInitializer {
 		});
 	}
 
-	public static void startScoreBoardTimer() {
+/*	public static void startScoreBoardTimer() {
 
 		updateScoreboardTimer = new Thread(() -> {
 			while (!stopScoreboardT) {
@@ -162,7 +176,7 @@ public class ServerUtility implements ModInitializer {
 			}
 		});
 		//updateScoreboardTimer.start();
-	}
+	}*/
 
 	public static long createBackup(){
 		Date date = new Date();
@@ -180,6 +194,11 @@ public class ServerUtility implements ModInitializer {
 		}
 	}
 
+	/**
+	 * 将路径放入Zip
+	 * @param path 指定路径
+	 * @param os zip输出流
+	 */
 	private static void putPathInZip(File path,ZipOutputStream os){
 		if (path.exists()){
 			if (path.isDirectory()) {
@@ -205,11 +224,11 @@ public class ServerUtility implements ModInitializer {
 		}
 	}
 
-	public static void newAuto(SetAutoCallback processor){
+	/*public static void newAuto(SetAutoCallback processor){
 		processor.server_mod$updateTimer();
 	}
 
 	public interface SetAutoCallback{
 		void server_mod$updateTimer();
-	}
+	}*/
 }

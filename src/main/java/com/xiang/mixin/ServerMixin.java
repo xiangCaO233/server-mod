@@ -68,7 +68,15 @@ public abstract class ServerMixin {
 
         //new ScoreboardThread().start();
 
-        //初始化积分榜
+        healthObj = scoreboard.getObjective("health");
+        if (healthObj == null) {
+            LOGGER.info("创建healthObjScoreboardObj");
+            healthObj = scoreboard.addObjective(
+                    "health", ScoreboardCriterion.HEALTH, Text.of("生命值"), ScoreboardCriterion.RenderType.HEARTS
+            );
+            LOGGER.info("创建healthObjScoreboardObj完成");
+        }
+        /*//初始化积分榜
         ServerUtility.serverScoreboard = this.scoreboard;
         //生命值
         healthObj = scoreboard.getObjective("health");
@@ -181,8 +189,8 @@ public abstract class ServerMixin {
             );
             LOGGER.info("创建damageObj完成");
         }
-        scoreboardObjectives.add(damageObj);
-        //复原伤害缓存map
+        scoreboardObjectives.add(damageObj);*/
+        /*//复原伤害缓存map
         for (String playerName : scoreboard.getKnownPlayers()) {
             String data = (String) prop.get(playerName);
             if (data == null) {
@@ -197,9 +205,9 @@ public abstract class ServerMixin {
                         )
                 );
             }
-        }
+        }*/
 
-        //受到伤害数
+        /*//受到伤害数
         takeDamageObj = scoreboard.getObjective("takeDamage");
         if (takeDamageObj == null) {
             LOGGER.info("创建takeDamageObj");
@@ -238,7 +246,7 @@ public abstract class ServerMixin {
         }
         scoreboardObjectives.add(killCountObj);
 
-        ServerUtility.startScoreBoardTimer();
+        ServerUtility.startScoreBoardTimer();*/
 
         LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
@@ -263,12 +271,6 @@ public abstract class ServerMixin {
                 if (playerList.size() == i){
                     return;
                 }
-                scoreboard.setObjectiveSlot(
-                        Scoreboard.SIDEBAR_DISPLAY_SLOT_ID,moveDistanceObj
-                );
-                scoreboard.setObjectiveSlot(
-                        Scoreboard.LIST_DISPLAY_SLOT_ID,healthObj
-                );
                 betterScoreboard.scoreObjects.changeScoreObject(
                         "moveDistance", moveMap.get(moveList.get(i)) + ":" + moveStatisticMap.get(moveMap.get(moveList.get(i))) / 100 , 9-i
                 );
@@ -334,7 +336,6 @@ public abstract class ServerMixin {
             }
         }
         //关闭计时器
-        stopScoreboardT = true;
         stopBackupT = true;
         stopNavThread = true;
 
