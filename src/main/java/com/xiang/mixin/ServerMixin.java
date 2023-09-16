@@ -1,9 +1,7 @@
 package com.xiang.mixin;
 
-import com.xiang.ServerUtility;
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.BetterObjective;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -12,15 +10,24 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
-import org.spongepowered.asm.mixin.*;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.slf4j.helpers.SubstituteLogger;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Optional;
+import java.util.Random;
 import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
@@ -55,6 +62,9 @@ public abstract class ServerMixin {
 
     @Shadow
     public abstract Optional<Path> getIconFile();
+
+    @Shadow
+    public abstract void setMotd(String motd);
 
     @Inject(at = @At("TAIL"), method = "loadWorld")
     private void init(CallbackInfo info) {
@@ -259,7 +269,7 @@ public abstract class ServerMixin {
         /*for (ServerPlayerEntity player : playerManager.getPlayerList()){
             betterObjective.syncAllScore(player);
         }*/
-
+        setMotd(new Random().nextInt(2000) + "");
         betterObjective.setScore(0, "WDN←" + BetterObjective.format(new Random().nextInt(2000) + "", 6, BetterObjective.LEFT), BetterObjective.LEFT);
         betterObjective.setScore(1, "WDNMD👉" + BetterObjective.format(new Random().nextInt(200) + "", 6, BetterObjective.RIGHT), BetterObjective.RIGHT);
         betterObjective.setScore(2, "WDNMD中" + BetterObjective.format(new Random().nextInt(20) + "", 6, BetterObjective.CENTER), BetterObjective.CENTER);
@@ -326,4 +336,10 @@ public abstract class ServerMixin {
 
     }
 
+
+
+    /*@Inject(at = @At("TAIL"), method = "runServer")
+    public void warn(String a, Object b, Object c) {
+        LOGGER.warn(a, b, c);
+    }*/
 }

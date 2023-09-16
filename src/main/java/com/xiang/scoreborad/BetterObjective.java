@@ -36,7 +36,7 @@ public class BetterObjective {
     /**
      * 占位符
      */
-    String placeholder = "";
+    String placeholder;
     /**
      * 左对齐
      */
@@ -160,16 +160,32 @@ public class BetterObjective {
         }
     }
 
+    /**
+     * 格式化字符串
+     *
+     * @param displayTitle 显示的标题
+     * @param width        显示的宽度
+     * @param alignment    对齐方式 0左对齐 1右对齐 2居中
+     * @return 格式化后的字符串
+     */
     public static String format(String displayTitle, int width, int alignment) {
-        //加工显示标题   对齐方式 0左对齐 1右对齐
-        String str = " ".repeat(width).substring(displayTitle.length());
+        // 加工显示标题，对齐方式 0左对齐 1右对齐 2居中
+        if (width < displayTitle.length()) {
+            throw new IllegalArgumentException("Width must be greater than or equal to the length of displayTitle.");
+        }
+
+        int paddingSize = width - displayTitle.length();
+        String padding = " ".repeat(paddingSize);
+
         return switch (alignment) {
-            case 0 -> displayTitle + str;
-            case 1 -> str + displayTitle;
-            case 2 -> str.substring(str.length() / 2) + displayTitle + str.substring(str.length() / 2);
-            default -> throw new IllegalStateException("Unexpected value: " + alignment);
+            case 0 -> padding + displayTitle;
+            case 1 -> displayTitle + padding;
+            case 2 ->
+                    " ".repeat((int) Math.floor(paddingSize / 2.)) + displayTitle + " ".repeat((int) Math.ceil(paddingSize / 2.));
+            default -> throw new IllegalArgumentException("Unexpected alignment value: " + alignment);
         };
     }
+
 
     /**
      * 修改计分板显示名
