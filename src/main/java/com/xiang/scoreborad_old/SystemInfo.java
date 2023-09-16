@@ -1,11 +1,9 @@
-package com.xiang.scoreborad;
+package com.xiang.scoreborad_old;
 
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.util.Util;
-
-import java.text.DecimalFormat;
 
 public class SystemInfo {
     static {

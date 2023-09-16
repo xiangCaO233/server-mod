@@ -1,12 +1,8 @@
-package com.xiang.scoreborad;
-
-import net.minecraft.network.packet.s2c.play.ScoreboardPlayerUpdateS2CPacket;
-import net.minecraft.scoreboard.ServerScoreboard;
+package com.xiang.scoreborad_old;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 public class ScoreObjects {
     private static class ScoreObject {

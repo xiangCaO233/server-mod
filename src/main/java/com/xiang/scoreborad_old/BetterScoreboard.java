@@ -1,4 +1,4 @@
-package com.xiang.scoreborad;
+package com.xiang.scoreborad_old;
 
 import com.xiang.navigate.Navigator;
 import net.minecraft.entity.player.PlayerEntity;

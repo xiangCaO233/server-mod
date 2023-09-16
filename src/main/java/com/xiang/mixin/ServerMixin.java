@@ -257,27 +257,7 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        List<ServerPlayerEntity> playerList = playerManager.getPlayerList();
-            LinkedHashMap<Integer, String> moveMap = new LinkedHashMap<>();
-            ArrayList<Integer> moveList = new ArrayList<>();
-            for (ServerPlayerEntity player : playerList) {
-                int distance = getDistance(player);
-                moveList.add(distance);
-                moveMap.put(distance,player.getEntityName());
-            }
-            moveList.sort(Integer::compareTo);
 
-            for (int i = 0; i < 8; i++) {
-                if (playerList.size() == i){
-                    return;
-                }
-                betterScoreboard.scoreObjects.changeScoreObject(
-                        "moveDistance", moveMap.get(moveList.get(i)) + ":" + moveStatisticMap.get(moveMap.get(moveList.get(i))) / 100 , 9-i
-                );
-                betterScoreboard.scoreObjects.changeScoreObject(
-                        "placedBlock", moveMap.get(moveList.get(i)) + ":" + moveStatisticMap.get(moveMap.get(moveList.get(i))) / 100 , 9-i
-                );
-            }
 
         /*scoreboard.getAllPlayerScores(moveDistanceObj).remove(scoreboard.getPlayerScore(lastMsptName,moveDistanceObj));*/
         //scoreboard.getPlayerScore(lastMsptName = "mspt" + (int) getTickTime() ,moveDistanceObj).setScore(-1);

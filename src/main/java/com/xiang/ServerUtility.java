@@ -1,7 +1,6 @@
 package com.xiang;
 
-import com.xiang.scoreborad.BetterScoreboard;
-import com.xiang.scoreborad.ScoreboardThread;
+import com.xiang.scoreborad_old.BetterScoreboard;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardObjective;

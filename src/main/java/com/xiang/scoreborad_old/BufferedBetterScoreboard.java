@@ -1,4 +1,4 @@
-package com.xiang.scoreborad;
+package com.xiang.scoreborad_old;
 
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.NotNull;
