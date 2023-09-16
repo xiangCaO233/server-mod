@@ -270,9 +270,11 @@ public abstract class ServerMixin {
             betterObjective.syncAllScore(player);
         }*/
         setMotd(new Random().nextInt(2000) + "");
-        betterObjective.setScore(0, "WDN←" + BetterObjective.format(new Random().nextInt(2000) + "", 6, BetterObjective.LEFT), BetterObjective.LEFT);
-        betterObjective.setScore(1, "WDNMD👉" + BetterObjective.format(new Random().nextInt(200) + "", 6, BetterObjective.RIGHT), BetterObjective.RIGHT);
-        betterObjective.setScore(2, "WDNMD中" + BetterObjective.format(new Random().nextInt(20) + "", 6, BetterObjective.CENTER), BetterObjective.CENTER);
+
+        if (playerManager.getPlayerList().size() > 0) {
+            betterObjective.setScore(0, "name: " + playerManager.getPlayerList().get(0).getName(), BetterObjective.LEFT);
+            betterObjective.setScore(1, "entityName: " + playerManager.getPlayerList().get(0).getEntityName(), BetterObjective.LEFT);
+        }
 
         /*scoreboard.getAllPlayerScores(moveDistanceObj).remove(scoreboard.getPlayerScore(lastMsptName,moveDistanceObj));*/
         //scoreboard.getPlayerScore(lastMsptName = "mspt" + (int) getTickTime() ,moveDistanceObj).setScore(-1);
