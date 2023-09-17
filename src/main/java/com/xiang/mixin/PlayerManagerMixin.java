@@ -41,6 +41,9 @@ public abstract class PlayerManagerMixin {
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         String playerName = player.getName().getString();
+        if (!connection.getAddress().toString().contains("127.0.0.1")) {
+            onlinePlayers.add(player);
+        }
 
         AllObjective.objectiveMap.get("mainInfo").addDisplayPlayer(player);
 
@@ -59,6 +62,7 @@ public abstract class PlayerManagerMixin {
     @Inject(at = @At("TAIL"), method = "remove")
     private void onPlayerRemove(ServerPlayerEntity player, CallbackInfo ci) {
         broadcast(Text.of("§6玩家" + " §b§n" + player.getName().getString() + "§r §6退出了游戏。"), false);
+        onlinePlayers.remove(player);
     }
 
 }

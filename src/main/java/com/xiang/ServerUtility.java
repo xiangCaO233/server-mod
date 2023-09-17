@@ -33,6 +33,7 @@ public class ServerUtility implements ModInitializer {
     public static Properties prop;
     //记录来过的玩家
     public static ArrayList<String> usedPlayers;
+    public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
     static Thread backupTimer;
     //备份停止标记
@@ -75,6 +76,7 @@ public class ServerUtility implements ModInitializer {
         LOGGER.info("server utility initializing");
         prop = new Properties();
         usedPlayers = new ArrayList<>();
+        onlinePlayers = new ArrayList<>();
 
         playerNameMapping = new HashMap<>();
         deathsStatisticMap = new HashMap<>();
