@@ -8,6 +8,7 @@ import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -89,7 +90,8 @@ public abstract class ServerMixin {
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         //更新服务器描述信息
-        setMotd("Infinity Heaven Server " + "世界时间: " + Info.getWorldTime() + " 运行: " + Info.getRunTime() + " TPS:" + Info.getTPS() + " MSPT:" + Info.getMSPT());
+        setMotd(Formatting.BLUE + "Infinity Heaven " + Formatting.RESET + Formatting.OBFUSCATED + ">>无尽天堂<<  纯生存"
+                + "世界时间: " + Info.getWorldTime() + " 运行: " + Info.getRunTime() + " TPS:" + Info.getTPS() + " MSPT:" + Info.getMSPT());
         //更新所有的计分项
         AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
             stringBetterObjectiveEntry.getValue().updateScore();

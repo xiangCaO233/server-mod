@@ -1,6 +1,7 @@
 package com.xiang.scoreborad;
 
 import com.xiang.util.Info;
+import net.minecraft.util.Formatting;
 
 import java.util.HashMap;
 
@@ -16,6 +17,7 @@ public class AllObjective {
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
                 objective.setScore(0, "MSPT : " + Info.getMSPT(), LEFT);
                 objective.setScore(1, "cycle : " + cycle, LEFT);
+                objective.setObjectiveTitleName(Formatting.BLUE + "Infinity Heaven " + Formatting.RESET + Formatting.OBFUSCATED + ">>无尽天堂<<  纯生存");
             }
 
             @Override

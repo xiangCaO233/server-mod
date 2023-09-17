@@ -201,11 +201,11 @@ public class BetterObjective {
     }
 
     /**
-     * 修改计分板显示名
+     * 修改计分项标题名
      *
      * @param name 名字
      */
-    public void changeScoreboardShowName(@NotNull String name) {
+    public void setObjectiveTitleName(@NotNull String name) {
         //检查是否有改动
         if (name.equals(scoreObjective.getDisplayName().getString())) return;
         scoreObjective.setDisplayName(Text.of(name));
