@@ -15,6 +15,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextVisitFactory;
 import net.minecraft.util.Formatting;
@@ -59,12 +60,12 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                             )
             );
             dispatcher.register(
-                    literal("setscoreboard").executes((context)->{
+                    literal("setscoreboard").executes((context) -> {
 
                                 return 1;
                             }).
-                            then(argument("scoreboardobjective/auto-loop", word()).suggests(new ScoreBoardCommandSugp()).executes((commandContext -> {
-                                PlayerEntity player = commandContext.getSource().getPlayer();
+                            then(argument("你想要显示的计分项", word()).suggests(new ScoreBoardCommandSugp()).executes((commandContext -> {
+                                ServerPlayerEntity player = commandContext.getSource().getPlayer();
                                 String name = Objects.requireNonNull(player).getEntityName();
                                 String[] args = commandContext.getInput().split(" ");
                                 if (name == null) {
@@ -76,15 +77,16 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                                 } else {
                                     //指定计分板
                                     player.sendMessage(Text.of("已设置指定计分板:" + args[1]));
+                                    AllObjective.setPlayerObjective(player, args[1]);
                                 }
                                 return 1;
                             })))
             );
             dispatcher.register(
                     literal("backup").executes(commandContext -> {
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of(Formatting.GOLD +"开始备份"), false);
+                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
                         long timeUsed = ServerUtility.createBackup();
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of((Formatting.GREEN+"备份花费:"+Formatting.RESET + timeUsed + "ms")), false);
+                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of((Formatting.GREEN + "备份花费:" + Formatting.RESET + timeUsed + "ms")), false);
                         return 1;
                     })
             );
@@ -123,8 +125,8 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
             //setscoreboard指令 补全内容
-            suggestionsBuilder.suggest("auto-loop");
-            for (String key: AllObjective.objectiveMap.keySet()){
+            //suggestionsBuilder.suggest("auto-loop");
+            for (String key : AllObjective.getObjectiveNames()) {
                 suggestionsBuilder.suggest(key);
             }
             return suggestionsBuilder.buildFuture();

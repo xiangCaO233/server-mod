@@ -123,6 +123,80 @@ public class ServerUtility implements ModInitializer {
             }
             configJson = new JsonParser().parse(json.toString()).getAsJsonObject();
 
+
+            JsonObject deathJson = configJson.getAsJsonObject("deaths");
+            JsonObject minedCountJson = configJson.getAsJsonObject("minedCount");
+            JsonObject placedCountJson = configJson.getAsJsonObject("placedCount");
+            JsonObject tradeCountJson = configJson.getAsJsonObject("tradeCount");
+            JsonObject moveJson = configJson.getAsJsonObject("move");
+            JsonObject expGetCountJson = configJson.getAsJsonObject("expGetCount");
+            JsonObject levelJson = configJson.getAsJsonObject("level");
+            JsonObject killCountJson = configJson.getAsJsonObject("killCount");
+            JsonObject damageJson = configJson.getAsJsonObject("damage");
+            JsonObject takeDamageJson = configJson.getAsJsonObject("takeDamage");
+            JsonObject onlineJson = configJson.getAsJsonObject("online");
+            JsonObject playerNameJson = configJson.getAsJsonObject("players");
+            if (deathJson != null) {
+                for (String uuid : deathJson.keySet()) {
+                    deathsStatisticMap.put(UUID.fromString(uuid), deathJson.get(uuid).getAsInt());
+                }
+            }
+            if (minedCountJson != null) {
+                for (String uuid : minedCountJson.keySet()) {
+                    minedCountStatisticMap.put(UUID.fromString(uuid), minedCountJson.get(uuid).getAsInt());
+                }
+            }
+            if (placedCountJson != null) {
+                for (String uuid : placedCountJson.keySet()) {
+                    minedCountStatisticMap.put(UUID.fromString(uuid), placedCountJson.get(uuid).getAsInt());
+                }
+            }
+            if (tradeCountJson != null) {
+                for (String uuid : tradeCountJson.keySet()) {
+                    tradeCountStatisticMap.put(UUID.fromString(uuid), tradeCountJson.get(uuid).getAsInt());
+                }
+            }
+            if (moveJson != null) {
+                for (String uuid : moveJson.keySet()) {
+                    moveStatisticMap.put(UUID.fromString(uuid), moveJson.get(uuid).getAsDouble());
+                }
+            }
+            if (expGetCountJson != null) {
+                for (String uuid : expGetCountJson.keySet()) {
+                    expGetCountStatisticMap.put(UUID.fromString(uuid), expGetCountJson.get(uuid).getAsInt());
+                }
+            }
+            if (levelJson != null) {
+                for (String uuid : levelJson.keySet()) {
+                    levelMap.put(UUID.fromString(uuid), levelJson.get(uuid).getAsInt());
+                }
+            }
+            if (killCountJson != null) {
+                for (String uuid : killCountJson.keySet()) {
+                    killCountStatisticMap.put(UUID.fromString(uuid), killCountJson.get(uuid).getAsInt());
+                }
+            }
+            if (damageJson != null) {
+                for (String uuid : damageJson.keySet()) {
+                    damageStatisticMap.put(UUID.fromString(uuid), damageJson.get(uuid).getAsFloat());
+                }
+            }
+            if (takeDamageJson != null) {
+                for (String uuid : takeDamageJson.keySet()) {
+                    takeDamageStatisticMap.put(UUID.fromString(uuid), takeDamageJson.get(uuid).getAsFloat());
+                }
+            }
+            if (onlineJson != null) {
+                for (String uuid : onlineJson.keySet()) {
+                    onlineStatisticMap.put(UUID.fromString(uuid), onlineJson.get(uuid).getAsInt());
+                }
+            }
+            if (playerNameJson != null) {
+                for (String uuid : playerNameJson.keySet()) {
+                    playerNameMapping.put(UUID.fromString(uuid), onlineJson.get(uuid).getAsString());
+                }
+            }
+
             JsonObject deathJson = configJson.getAsJsonObject("deaths");
             JsonObject minedCountJson = configJson.getAsJsonObject("minedCount");
             JsonObject placedCountJson = configJson.getAsJsonObject("placedCount");

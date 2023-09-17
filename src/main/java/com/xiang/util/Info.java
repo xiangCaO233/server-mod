@@ -17,30 +17,34 @@ public class Info {
      * @param v 值
      * @return 带单位的值
      */
-    public static String unitConversion(Integer v) {
-        if (v == null || v < 0) {
-            throw new IllegalArgumentException("Value must be a non-negative integer.");
-        }
-
+    public static String unitConversion(int v) {
         if (v < 1000) {
-            return String.valueOf(v);
-        }
-
-        BigDecimal result;
-        String unit;
-
-        if (v < 1000000) {
-            result = new BigDecimal(v / 1000.0).setScale(2, RoundingMode.HALF_UP);
-            unit = "k";
+            return String.format("%d", v);
+        } else if (v < 1000000) {
+            return String.format("%.2fk", v / 1000.0);
         } else if (v < 1000000000) {
-            result = new BigDecimal(v / 1000000.0).setScale(2, RoundingMode.HALF_UP);
-            unit = "m";
+            return String.format("%.2fm", v / 1000000.0);
         } else {
-            result = new BigDecimal(v / 1000000000.0).setScale(2, RoundingMode.HALF_UP);
-            unit = "b";
+            return String.format("%.2fb", v / 1000000000.0);
         }
+    }
 
-        return String.format("%s%s", result, unit);
+    /**
+     * 单位换算
+     *
+     * @param v 值
+     * @return 带单位的值
+     */
+    public static String unitConversion(float v) {
+        if (v < 1000) {
+            return String.format("%.2f", v);
+        } else if (v < 1000000) {
+            return String.format("%.2fk", v / 1000.0);
+        } else if (v < 1000000000) {
+            return String.format("%.2fm", v / 1000000.0);
+        } else {
+            return String.format("%.2fb", v / 1000000000.0);
+        }
     }
 
     /**

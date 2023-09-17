@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.AllObjective;
+import com.xiang.scoreborad.BetterObjective;
 import com.xiang.util.Info;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -23,12 +23,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
@@ -103,9 +101,7 @@ public abstract class ServerMixin {
         //更新所有的计分项
         skip = !skip;
         if (skip) {
-            AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
-                stringBetterObjectiveEntry.getValue().updateScore();
-            });
+            AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerScore);
         }
 
         /*

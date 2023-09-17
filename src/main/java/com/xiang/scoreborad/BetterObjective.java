@@ -28,14 +28,23 @@ public class BetterObjective {
     ArrayList<ServerPlayerEntity> playerList = new ArrayList<>();
 
     /**
-     * 计分项 (原版)
+     * 计分项 (原版) 1
      */
-    ScoreboardObjective scoreObjective;
+    ScoreboardObjective scoreObjective1;
+
+    /**
+     * 计分项 (原版) 2
+     */
+    ScoreboardObjective scoreObjective2;
+    /**
+     * 用于切换原版计分项
+     */
+    boolean isScoreObjective1 = true;
 
     /**
      * 计分项宽度
      */
-    int width=0;
+    int width = 0;
     /**
      * 左对齐
      */
@@ -68,9 +77,9 @@ public class BetterObjective {
         setPlaceholderWidth(36);
         scoreList = new String[size];
         for (int i = 0; i < scoreList.length; i++) {
-            scoreList[i] = " ".repeat(i+1);
+            scoreList[i] = " ".repeat(i + 1);
         }
-        scoreObjective = new ScoreboardObjective(new Scoreboard(), objectiveName, ScoreboardCriterion.DUMMY, Text.of((displayName == null ? "" : displayName)), ScoreboardCriterion.RenderType.INTEGER);
+        scoreObjective1 = new ScoreboardObjective(new Scoreboard(), objectiveName, ScoreboardCriterion.DUMMY, Text.of((displayName == null ? "" : displayName)), ScoreboardCriterion.RenderType.INTEGER);
     }
 
     /**
@@ -88,7 +97,7 @@ public class BetterObjective {
      * @param width 长度
      */
     public void setPlaceholderWidth(int width) {
-       this.width=width;
+        this.width = width;
     }
 
     /**
@@ -108,7 +117,7 @@ public class BetterObjective {
      * @param playerName 分数的玩家名
      */
     private void removeMCscore(String playerName) {
-        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective.getName(), playerName, 0));
+        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective1.getName(), playerName, 0));
     }
 
     /**
@@ -118,7 +127,7 @@ public class BetterObjective {
      * @param score      分数
      */
     private void modifyMCscore(String playerName, int score) {
-        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), playerName, score));
+        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective1.getName(), playerName, score));
     }
 
     /**
@@ -128,7 +137,7 @@ public class BetterObjective {
      */
     public void syncAllScore(ServerPlayerEntity player) {
         for (int i = 0; i < scoreList.length; i++) {
-            player.networkHandler.sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective.getName(), scoreList[i], i));
+            player.networkHandler.sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective1.getName(), scoreList[i], i));
         }
     }
 
@@ -141,8 +150,9 @@ public class BetterObjective {
      */
     public void setScore(int index, String displayTitle, int alignment) {
         //格式化字符串
-        displayTitle=format(displayTitle,width,alignment);
-
+        displayTitle = format(displayTitle, width, alignment);
+        displayTitle = clearTrailingSpaces(displayTitle);
+        displayTitle += "§r".repeat(index);
         //检查索引
         if (index < 0 || index >= scoreList.length) {
             throw new IllegalArgumentException("索引越界");
@@ -158,6 +168,14 @@ public class BetterObjective {
         }
     }
 
+    public static String clearTrailingSpaces(String input) {
+        int i = input.length() - 1;
+        while (i >= 0 && Character.isWhitespace(input.charAt(i))) {
+            i--;
+        }
+        return input.substring(0, i + 1);
+    }
+
     /**
      * 格式化字符串
      *
@@ -170,18 +188,18 @@ public class BetterObjective {
 
         // 去除颜色字符的原始字符串
         String original = displayTitle.replaceAll("§[0-9a-zA-Z]", "");
-
         // 加工显示标题，对齐方式 0左对齐 1右对齐 2居中
         if (width < original.length()) {
-            throw new RuntimeException("Width must be greater than or equal to the length of displayTitle.");
+            System.out.println("宽度必须大于或等于 displayTitle 的长度。");
+            return "?????";
         }
 
         int paddingSize = width - original.length();
         String padding = " ".repeat(paddingSize);
 
         return switch (alignment) {
-            case 0 ->  displayTitle ;//+ padding 
-            case 1 -> padding + displayTitle ;
+            case 0 -> displayTitle + padding;
+            case 1 -> padding + displayTitle;
             case 2 ->
                     " ".repeat((int) Math.floor(paddingSize / 2.)) + displayTitle + " ".repeat((int) Math.ceil(paddingSize / 2.));
             default -> throw new RuntimeException("Unexpected alignment value: " + alignment);
@@ -189,9 +207,9 @@ public class BetterObjective {
     }
 
     /**
-     * 更新分数 (通过分数项处理器)
+     * 处理更新分数 (通过分数项处理器)
      */
-    public void updateScore() {
+    public void handlerScore() {
         for (ObjectiveHandler handler : objectiveHandler) {
             handler.onObjectiveUpdate(this, cycle % handler.getMaxCycle());
         }
@@ -203,12 +221,12 @@ public class BetterObjective {
      *
      * @param name 名字
      */
-    public void setObjectiveTitleName(@NotNull String name) {
+    public void setTitle(@NotNull String name) {
         //检查是否有改动
-        if (name.equals(scoreObjective.getDisplayName().getString())) return;
-        scoreObjective.setDisplayName(Text.of(name));
+        if (name.equals(scoreObjective1.getDisplayName().getString())) return;
+        scoreObjective1.setDisplayName(Text.of(name));
         //更新名字
-        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective, 2));
+        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective1, 2));
     }
 
     /**
@@ -216,18 +234,31 @@ public class BetterObjective {
      *
      * @param player 玩家
      */
-    public void addDisplayPlayer(ServerPlayerEntity player) {
+    public void addPlayer(ServerPlayerEntity player) {
         //判断玩家 重复
         if (playerList.contains(player)) return;
         //添加到列表
         playerList.add(player);
         //发送添加玩家
-        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective, 0));
+        player.networkHandler.sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective1, 0));
         //同步所有分数
         syncAllScore(player);
         //设置计分项显示的槽位
-        player.getScoreboard().setObjectiveSlot(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, scoreObjective);
+        player.getScoreboard().setObjectiveSlot(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, scoreObjective1);
     }
 
+    /**
+     * 移除要显示计分项的玩家
+     *
+     * @param player 玩家
+     */
+    public void removePlayer(ServerPlayerEntity player) {
+        //判断玩家存在
+        playerList.remove(player);
+    }
+
+    public ArrayList<ServerPlayerEntity> getPlayerList() {
+        return playerList;
+    }
 
 }

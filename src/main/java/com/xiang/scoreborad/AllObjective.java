@@ -1,22 +1,20 @@
 package com.xiang.scoreborad;
 
 import com.xiang.ServerUtility;
-import com.xiang.navigate.Navigator;
 import com.xiang.util.Info;
 import com.xiang.util.SystemInfo;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import static com.xiang.ServerUtility.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.xiang.scoreborad.BetterObjective.*;
 
 public class AllObjective {
     //infinity heaven
-    public static HashMap<String, BetterObjective> objectiveMap = new HashMap<>();
-    public static final String[] titleEffect = new String[]{
+    private static HashMap<String, BetterObjective> objectiveMap = new HashMap<>();
+    private static final String[] titleEffect = new String[]{
             "§b§l §6§ni",
             "§b§l i§6§nn",
             "§b§l in§6§nf",
@@ -31,11 +29,11 @@ public class AllObjective {
             "§b§l infinity§e§l hea§6§nv",
             "§b§l infinity§e§l heav§6§ne",
             "§b§l infinity§e§l heave§6§nn",
-            "§r§a §b§l infinity§e§l heaven§r§a ",
-            "§r§c§k-§r §b§l infinity§e§l heaven§r§a §c§k-",
-            "§r§c§k-§r§a- §b§l infinity§e§l heaven§r§a -§c§k-",
-            "§r§c§k-§r§a-- §b§l infinity§e§l heaven§r§a --§c§k-",
-            "§r§c§k-§r§a--- §b§l infinity§e§l heaven§r§a ---§c§k-",
+            "§b§l infinity§e§l heaven§r§a",
+            "§r§c§k-§r§b§l infinity§e§l heaven§r§a §c§k-",
+            "§r§c§k-§r§a-§b§l infinity§e§l heaven§r§a -§c§k-",
+            "§r§c§k-§r§a--§b§l infinity§e§l heaven§r§a --§c§k-",
+            "§r§c§k-§r§a---§b§l infinity§e§l heaven§r§a ---§c§k-",
             "§r§a----§b§l infinity§e§l heaven§r§a ----",
             "§r§a----§b§l infinity§e§l heaven§r§a ----",
             "§r§a----§b§l infinity§e§l heaven§r§a ----",
@@ -50,6 +48,10 @@ public class AllObjective {
             "§r§a----§b§l infinity§e§l §f§lhe§e§laven§r§a ----",
             "§r§a----§b§l infinity§e§l he§f§lav§e§len§r§a ----",
             "§r§a----§b§l infinity§e§l heav§f§len§e§l§r§a ----",
+            "§r§a----§b§l infinity§e§l heaven§r§a ----",
+            "§r§a----§b§l infinity§e§l heaven§r§a ----",
+            "§r§a----§b§l infinity§e§l heaven§r§a ----",
+            "§r§a----§b§l infinity§e§l heaven§r§a ----",
             "§r§a----§b§l infinity§e§l heaven§r§a ----",
             "§r§a----§b§l infinity§e§l heaven§r§a ----",
             "§r§a----§b§l infinity§e§l heav§f§len§e§l§r§a ----",
@@ -76,12 +78,16 @@ public class AllObjective {
             ""
     };
 
+    static ArrayList<BetterObjective> autoLoops = new ArrayList<>();
+    static int autoLoopIndex = 0;
+
     public static void initialize() {
+
         //计分项的标题特效 无
         ObjectiveHandler titleHandler = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
-                objective.setObjectiveTitleName(
+                objective.setTitle(
                         titleEffect[cycle]
                 );
             }
@@ -91,7 +97,6 @@ public class AllObjective {
                 return titleEffect.length;
             }
         };
-
         //底部的信息 0-3
         ObjectiveHandler bottomInfoHandler = new ObjectiveHandler() {
             @Override
@@ -112,7 +117,6 @@ public class AllObjective {
                 return 10;
             }
         };
-
         //服务器信息 4-11
         ObjectiveHandler serverInfoHandler = new ObjectiveHandler() {
             @Override
@@ -146,45 +150,461 @@ public class AllObjective {
                 return 16;
             }
         };
-
         //死亡排行榜 4-11   deathsStatisticMap
         ObjectiveHandler deathRankingHandler = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
-                objective.setScore(11, "-- §c§l死亡排行榜 --", CENTER);
-                ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(deathsStatisticMap);
-                for (int i = 0; i < 7; i++) {
-                    String color = "§e";
-                    if (i == 0)
-                        color = "§6";
-                    if (i == 1)
-                        color = "§b";
-                    if (i == 2)
-                        color = "§a";
 
-                    if (rankingList.size() > i) {
-                        Map.Entry<UUID, Integer> playerStat = rankingList.get(i);
-                        String playerName = playerNameMapping.get(playerStat.getKey());
-                        objective.setScore(10 - i, color + "#" + (i + 1) + " " + playerName + " " + playerStat.getValue(), LEFT);
-                    } else {
-                        objective.setScore(10 - i, color + "#" + (i + 1) + " " + "暂无", LEFT);
-                    }
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--死亡排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§c§l");
+                    stringBuilder.insert(cycle, "§4§l");
+                    objective.setScore(11, "§c§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+                printRankInteger(objective, deathsStatisticMap, "次");
+            }
 
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //挖掘数排行榜
+        ObjectiveHandler minedRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--挖掘排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§e§l");
+                    stringBuilder.insert(cycle, "§f§l");
+                    objective.setScore(11, "§e§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, minedCountStatisticMap, "个");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //放置数排行榜
+        ObjectiveHandler placedRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--放置排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§6§l");
+                    stringBuilder.insert(cycle, "§e§l");
+                    objective.setScore(11, "§6§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, placedCountStatisticMap, "个");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //交易数排行榜
+        ObjectiveHandler tradeRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--交易排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§2§l");
+                    stringBuilder.insert(cycle, "§a§l");
+                    objective.setScore(11, "§2§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, tradeCountStatisticMap, "次");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //移动距离排行榜
+        ObjectiveHandler moveRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--移动排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§1§l");
+                    stringBuilder.insert(cycle, "§9§l");
+                    objective.setScore(11, "§1§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankDouble(objective, moveStatisticMap, "m");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //经验获取排行榜
+        ObjectiveHandler expGetRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--经验排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§a§l");
+                    stringBuilder.insert(cycle, "§2§l");
+                    objective.setScore(11, "§a§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, expGetCountStatisticMap, "点");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //击杀数排行榜
+        ObjectiveHandler killRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--击杀排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§d§l");
+                    stringBuilder.insert(cycle, "§5§l");
+                    objective.setScore(11, "§d§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, killCountStatisticMap, "个");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //伤害排行榜
+        ObjectiveHandler damageRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--伤害排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§c§l");
+                    stringBuilder.insert(cycle, "§4§l");
+                    objective.setScore(11, "§c§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankFloatHealth(objective, damageStatisticMap, "点");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //受伤排行榜
+        ObjectiveHandler takeDamageRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--受伤排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§4§l");
+                    stringBuilder.insert(cycle, "§c§l");
+                    objective.setScore(11, "§4§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankFloatHealth(objective, takeDamageStatisticMap, "点");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //在线排行榜
+        ObjectiveHandler onlineRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--在线排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§f§l");
+                    stringBuilder.insert(cycle, "§7§l");
+                    objective.setScore(11, "§f§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankIntegerTime(objective, onlineStatisticMap);
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+        //等级排行榜
+        ObjectiveHandler levelRankingHandler = new ObjectiveHandler() {
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+
+                {
+                    StringBuilder stringBuilder = new StringBuilder("--等级排行榜--     ");
+                    stringBuilder.insert(cycle + 2, "§a§l");
+                    stringBuilder.insert(cycle, "§2§l");
+                    objective.setScore(11, "§a§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
+
+                printRankInteger(objective, levelMap, "级");
+            }
+
+            @Override
+            public int getMaxCycle() {
+                return 12;
+            }
+        };
+
+
+        BetterObjective serverInfoObjective = new BetterObjective("serverInfoObjective", "serverInfoObjective", 12);
+        serverInfoObjective.addHeader(bottomInfoHandler);
+        serverInfoObjective.addHeader(titleHandler);
+        serverInfoObjective.addHeader(serverInfoHandler);
+
+        BetterObjective deathRankingObjective = new BetterObjective("deathRankingObjective", "deathRankingObjective", 12);
+        deathRankingObjective.addHeader(bottomInfoHandler);
+        deathRankingObjective.addHeader(titleHandler);
+        deathRankingObjective.addHeader(deathRankingHandler);
+
+        BetterObjective minedRankingObjective = new BetterObjective("minedRankingObjective", "minedRankingObjective", 12);
+        minedRankingObjective.addHeader(bottomInfoHandler);
+        minedRankingObjective.addHeader(titleHandler);
+        minedRankingObjective.addHeader(minedRankingHandler);
+
+        BetterObjective placedRankingObjective = new BetterObjective("placedRankingObjective", "placedRankingObjective", 12);
+        placedRankingObjective.addHeader(bottomInfoHandler);
+        placedRankingObjective.addHeader(titleHandler);
+        placedRankingObjective.addHeader(placedRankingHandler);
+
+        BetterObjective tradeRankingObjective = new BetterObjective("tradeRankingObjective", "tradeRankingObjective", 12);
+        tradeRankingObjective.addHeader(bottomInfoHandler);
+        tradeRankingObjective.addHeader(titleHandler);
+        tradeRankingObjective.addHeader(tradeRankingHandler);
+
+        BetterObjective moveRankingObjective = new BetterObjective("moveRankingObjective", "moveRankingObjective", 12);
+        moveRankingObjective.addHeader(bottomInfoHandler);
+        moveRankingObjective.addHeader(titleHandler);
+        moveRankingObjective.addHeader(moveRankingHandler);
+
+        BetterObjective expGetRankingObjective = new BetterObjective("expGetRankingObjective", "expGetRankingObjective", 12);
+        expGetRankingObjective.addHeader(bottomInfoHandler);
+        expGetRankingObjective.addHeader(titleHandler);
+        expGetRankingObjective.addHeader(expGetRankingHandler);
+
+        BetterObjective killRankingObjective = new BetterObjective("killRankingObjective", "killRankingObjective", 12);
+        killRankingObjective.addHeader(bottomInfoHandler);
+        killRankingObjective.addHeader(titleHandler);
+        killRankingObjective.addHeader(killRankingHandler);
+
+        BetterObjective damageRankingObjective = new BetterObjective("damageRankingObjective", "damageRankingObjective", 12);
+        damageRankingObjective.addHeader(bottomInfoHandler);
+        damageRankingObjective.addHeader(titleHandler);
+        damageRankingObjective.addHeader(damageRankingHandler);
+
+        BetterObjective takeDamageRankingObjective = new BetterObjective("takeDamageRankingObjective", "takeDamageRankingObjective", 12);
+        takeDamageRankingObjective.addHeader(bottomInfoHandler);
+        takeDamageRankingObjective.addHeader(titleHandler);
+        takeDamageRankingObjective.addHeader(takeDamageRankingHandler);
+
+        BetterObjective onlineRankingObjective = new BetterObjective("onlineRankingObjective", "onlineRankingObjective", 12);
+        onlineRankingObjective.addHeader(bottomInfoHandler);
+        onlineRankingObjective.addHeader(titleHandler);
+        onlineRankingObjective.addHeader(onlineRankingHandler);
+
+        BetterObjective levelRankingObjective = new BetterObjective("levelRankingObjective", "levelRankingObjective", 12);
+        levelRankingObjective.addHeader(bottomInfoHandler);
+        levelRankingObjective.addHeader(titleHandler);
+        levelRankingObjective.addHeader(levelRankingHandler);
+
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(deathRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(minedRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(placedRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(tradeRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(moveRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(expGetRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(killRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(damageRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(takeDamageRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(onlineRankingObjective);
+        autoLoops.add(serverInfoObjective);
+        autoLoops.add(levelRankingObjective);
+
+        BetterObjective autoLoopObjective = new BetterObjective("autoLoopObjective", "autoLoopObjective", 12);
+        autoLoopObjective.addHeader(bottomInfoHandler);
+        autoLoopObjective.addHeader(titleHandler);
+        autoLoopObjective.addHeader(new ObjectiveHandler() {
+
+            @Override
+            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+                //setPlayerObjective();
+                autoLoopIndex++;
+                if (autoLoopIndex >= autoLoops.size()) {
+                    autoLoopIndex = 0;
                 }
             }
 
             @Override
             public int getMaxCycle() {
-                return 1;
+                return 0;
             }
-        };
+        });
+        autoLoopObjective.addHeader(onlineRankingHandler);
 
-        BetterObjective mainInfo = new BetterObjective("mainInfo", "mainInfo", 12);
-        mainInfo.addHeader(bottomInfoHandler);
-        mainInfo.addHeader(titleHandler);
-        mainInfo.addHeader(deathRankingHandler);
+        objectiveMap.put("serverInfo", serverInfoObjective);
+        objectiveMap.put("deathRanking", deathRankingObjective);
+        objectiveMap.put("minedRanking", minedRankingObjective);
+        objectiveMap.put("placedRanking", placedRankingObjective);
+        objectiveMap.put("tradeRanking", tradeRankingObjective);
+        objectiveMap.put("moveRanking", moveRankingObjective);
+        objectiveMap.put("expGetRanking", expGetRankingObjective);
+        objectiveMap.put("killRanking", killRankingObjective);
+        objectiveMap.put("damageRanking", damageRankingObjective);
+        objectiveMap.put("takeDamageRanking", takeDamageRankingObjective);
+        objectiveMap.put("onlineRanking", onlineRankingObjective);
+        objectiveMap.put("levelRanking", levelRankingObjective);
+    }
 
-        objectiveMap.put("mainInfo", mainInfo);
+    public static boolean setPlayerObjective(ServerPlayerEntity player, String objectiveName) {
+        BetterObjective target = objectiveMap.get(objectiveName);
+        if (target == null)
+            return false;
+        for (BetterObjective objective : objectiveMap.values()) {
+            objective.removePlayer(player);
+        }
+        target.addPlayer(player);
+        return true;
+    }
+
+    public static Set<String> getObjectiveNames() {
+        return objectiveMap.keySet();
+    }
+
+    public static Collection<BetterObjective> getObjectives() {
+        return objectiveMap.values();
+    }
+
+    private static void printRankDouble(BetterObjective objective, HashMap<UUID, Double> placedCountStatisticMap, String unit) {
+        ArrayList<Map.Entry<UUID, Double>> rankingList = sortRankingDouble(placedCountStatisticMap);
+        for (int i = 0; i < 7; i++) {
+            String color = "§e🏅";
+            if (i == 0)
+                color = "§6🥇";
+            if (i == 1)
+                color = "§b🥈";
+            if (i == 2)
+                color = "§a🥉";
+
+            if (rankingList.size() > i) {
+                Map.Entry<UUID, Double> playerStat = rankingList.get(rankingList.size() - 1 - i);
+                String playerName = playerNameMapping.get(playerStat.getKey());
+                objective.setScore(10 - i, color + " " +
+                        BetterObjective.format(playerName, 16, LEFT) +
+                        BetterObjective.format(Info.unitConversion(playerStat.getValue().intValue()) + unit, 14, RIGHT), LEFT);
+            } else {
+                objective.setScore(10 - i, color + " 暂无", LEFT);
+            }
+
+        }
+    }
+
+    private static void printRankInteger(BetterObjective objective, HashMap<UUID, Integer> placedCountStatisticMap, String unit) {
+        ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(placedCountStatisticMap);
+        for (int i = 0; i < 7; i++) {
+            String color = "§e🏅";
+            if (i == 0)
+                color = "§6🥇";
+            if (i == 1)
+                color = "§b🥈";
+            if (i == 2)
+                color = "§a🥉";
+
+            if (rankingList.size() > i) {
+                Map.Entry<UUID, Integer> playerStat = rankingList.get(rankingList.size() - 1 - i);
+                String playerName = playerNameMapping.get(playerStat.getKey());
+                objective.setScore(10 - i, color + " " +
+                        BetterObjective.format(playerName, 16, LEFT) +
+                        BetterObjective.format(Info.unitConversion(playerStat.getValue()) + unit, 14, RIGHT), LEFT);
+            } else {
+                objective.setScore(10 - i, color + " 暂无", LEFT);
+            }
+
+        }
+    }
+
+    private static void printRankIntegerTime(BetterObjective objective, HashMap<UUID, Integer> placedCountStatisticMap) {
+        ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(placedCountStatisticMap);
+        for (int i = 0; i < 7; i++) {
+            String color = "§e🏅";
+            if (i == 0)
+                color = "§6🥇";
+            if (i == 1)
+                color = "§b🥈";
+            if (i == 2)
+                color = "§a🥉";
+
+            if (rankingList.size() > i) {
+                Map.Entry<UUID, Integer> playerStat = rankingList.get(rankingList.size() - 1 - i);
+                String playerName = playerNameMapping.get(playerStat.getKey());
+                if (playerName == null) {
+                    playerName = "未知玩家";
+                }
+                objective.setScore(10 - i, color + " " +
+                        BetterObjective.format(playerName, 16, LEFT) +
+                        BetterObjective.format(Info.timeUnitConversion(playerStat.getValue()), 14, RIGHT), LEFT);
+            } else {
+                objective.setScore(10 - i, color + " 暂无", LEFT);
+            }
+
+        }
+    }
+
+    private static void printRankFloatHealth(BetterObjective objective, HashMap<UUID, Float> placedCountStatisticMap, String unit) {
+        ArrayList<Map.Entry<UUID, Float>> rankingList = sortRankingFloat(placedCountStatisticMap);
+        for (int i = 0; i < 7; i++) {
+            String color = "§e🏅";
+            if (i == 0)
+                color = "§6🥇";
+            if (i == 1)
+                color = "§b🥈";
+            if (i == 2)
+                color = "§a🥉";
+
+            if (rankingList.size() > i) {
+                Map.Entry<UUID, Float> playerStat = rankingList.get(rankingList.size() - 1 - i);
+                String playerName = playerNameMapping.get(playerStat.getKey());
+                objective.setScore(10 - i, color + " " +
+                        BetterObjective.format(playerName, 16, LEFT) +
+                        BetterObjective.format(Info.unitConversion(playerStat.getValue() * 2) + unit, 14, RIGHT), LEFT);
+            } else {
+                objective.setScore(10 - i, color + " 暂无", LEFT);
+            }
+
+        }
     }
 
     public static ArrayList<Map.Entry<UUID, Integer>> sortRankingInteger(HashMap<UUID, Integer> statData) {
