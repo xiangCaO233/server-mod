@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.xiang.ServerUtility.*;
+import static com.xiang.navigate.Navigator.playerManager;
 
 /**
  * @author xiang2333
@@ -37,15 +38,20 @@ public abstract class PlayerMixin {
     @Shadow
     public abstract PlayerInventory getInventory();
 
-    @Shadow public abstract Scoreboard getScoreboard();
+    @Shadow
+    public abstract Scoreboard getScoreboard();
 
-    @Shadow public abstract String getEntityName();
+    @Shadow
+    public abstract String getEntityName();
 
     @Inject(at = @At("TAIL"), method = "tickMovement")
     private void afterPlayerMove(CallbackInfo ci) {
         if (previousX == 0 && previousY == 0 && previousZ == 0) {
             //初次加载
             updatePrePos();
+            if (self == null) {
+                return;
+            }
         }
         //计算移动距离
         double moveDistance = Math.sqrt(
@@ -62,6 +68,9 @@ public abstract class PlayerMixin {
 
     @Inject(at = @At("TAIL"), method = "addExperience")
     private void onPlayerGetExp(int experience, CallbackInfo ci) {
+        if (self == null) {
+            updatePrePos();
+        }
         //更新计分板
         String playerName = self.getEntityName();
         //增加缓存中玩家经验获取
@@ -71,6 +80,9 @@ public abstract class PlayerMixin {
 
     @Inject(at = @At("TAIL"), method = "damage")
     private void onPlayerTakeDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (self == null) {
+            updatePrePos();
+        }
         //玩家受攻击
         //增加缓存中玩家受到的伤害
         String playerName = getEntityName();
@@ -82,7 +94,10 @@ public abstract class PlayerMixin {
      */
     @Unique
     private void updatePrePos() {
-        self = getInventory().player;
+        self = playerManager.getPlayer(getEntityName());
+        if (self == null) {
+            return;
+        }
         previousX = self.getX();
         previousY = self.getY();
         previousZ = self.getZ();
