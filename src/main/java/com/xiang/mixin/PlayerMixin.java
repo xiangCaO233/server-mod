@@ -47,6 +47,7 @@ public abstract class PlayerMixin extends Entity {
     @Shadow
     public abstract Scoreboard getScoreboard();
 
+
     @Inject(at = @At("TAIL"), method = "tickMovement")
     private void afterPlayerMove(CallbackInfo ci) {
         if (previousX == 0 && previousY == 0 && previousZ == 0) {

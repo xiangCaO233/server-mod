@@ -52,7 +52,7 @@ public abstract class PlayerManagerMixin {
 
         Scoreboard scoreboard = player.getScoreboard();
 
-        usedPlayers.add(playerName);
+        usedPlayers.add(player);
         //显示生命值
         scoreboard.setObjectiveSlot(Scoreboard.LIST_DISPLAY_SLOT_ID, healthObj);
         broadcast(Text.of("§6玩家" + " §b§n" + playerName + "§r §6加入了游戏！"), false);

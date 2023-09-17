@@ -1,14 +1,18 @@
 package com.xiang.mixin;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.AllObjective;
 import com.xiang.util.Info;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,10 +22,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
@@ -123,33 +130,54 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "stop")
     private void onServerStop(boolean waitForShutdown, CallbackInfo ci) {
-        //保存浮点数据
-        for (String playerName : usedPlayers) {
-            String data =
-                    moveStatisticMap.get(playerName) + "|" +
-                            damageStatisticMap.get(playerName) + "|" +
-                            takeDamageStatisticMap.get(playerName);
-            prop.put(playerName, data);
-        }
-        FileOutputStream fos = null;
+
+        Gson gson = new GsonBuilder().setLenient().serializeSpecialFloatingPointValues().create();
+        JsonParser jsonParser = new JsonParser();
+        JsonObject deathsJson = jsonParser.parse(gson.toJson(deathsStatisticMap)).getAsJsonObject();
+        JsonObject minedCountJson = jsonParser.parse(gson.toJson(minedCountStatisticMap)).getAsJsonObject();
+        JsonObject placedCountJson = jsonParser.parse(gson.toJson(placedCountStatisticMap)).getAsJsonObject();
+        JsonObject tradeCountJson = jsonParser.parse(gson.toJson(tradeCountStatisticMap)).getAsJsonObject();
+        JsonObject moveJson = jsonParser.parse(gson.toJson(moveStatisticMap)).getAsJsonObject();
+        JsonObject expGetCountJson = jsonParser.parse(gson.toJson(expGetCountStatisticMap)).getAsJsonObject();
+        JsonObject killCountJson = jsonParser.parse(gson.toJson(killCountStatisticMap)).getAsJsonObject();
+        JsonObject damageJson = jsonParser.parse(gson.toJson(damageStatisticMap)).getAsJsonObject();
+        JsonObject takeDamageJson = jsonParser.parse(gson.toJson(takeDamageStatisticMap)).getAsJsonObject();
+        JsonObject onlineJson = jsonParser.parse(gson.toJson(onlineStatisticMap)).getAsJsonObject();
+
+        JsonObject config = new JsonObject();
+        config.add("deaths",deathsJson);
+        config.add("minedCount",minedCountJson);
+        config.add("placedCount",placedCountJson);
+        config.add("tradeCount",tradeCountJson);
+        config.add("move",moveJson);
+        config.add("expGetCount",expGetCountJson);
+        config.add("killCount",killCountJson);
+        config.add("damage",damageJson);
+        config.add("takeDamage",takeDamageJson);
+        config.add("online",onlineJson);
+
+        BufferedWriter bw = null;
         try {
-            fos = new FileOutputStream(config);
-            prop.store(fos, "");
+            bw = new BufferedWriter(new FileWriter(configfile));
+            bw.write(gson.toJson(config));
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                if (fos != null) {
-                    fos.flush();
-                    fos.close();
+        }finally {
+            if (bw != null) {
+                try {
+                    bw.flush();
+                    bw.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         }
+
         //关闭计时器
         stopBackupT = true;
         stopNavThread = true;
 
     }
+
+
 }

@@ -1,5 +1,9 @@
 package com.xiang;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.xiang.scoreborad.BetterObjective;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,10 +13,7 @@ import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -27,12 +28,12 @@ public class ServerUtility implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //	public static String lastMsptName;
-    public static File config;
+    public static File configfile;
     public static File backupsPath;
     public static File worldPath;
-    public static Properties prop;
+    public static JsonObject configJson;
     //记录来过的玩家
-    public static ArrayList<String> usedPlayers;
+    public static ArrayList<PlayerEntity> usedPlayers;
     public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
     static Thread backupTimer;
@@ -66,6 +67,7 @@ public class ServerUtility implements ModInitializer {
      * 玩家承受伤害缓存
      */
     public static HashMap<UUID, Float> takeDamageStatisticMap;
+    public static HashMap<UUID, Integer> onlineStatisticMap;
     /**
      * 公开的计分项 (测试)
      */
@@ -74,7 +76,6 @@ public class ServerUtility implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("server utility initializing");
-        prop = new Properties();
         usedPlayers = new ArrayList<>();
         onlinePlayers = new ArrayList<>();
 
@@ -88,9 +89,10 @@ public class ServerUtility implements ModInitializer {
         moveStatisticMap = new HashMap<>();
         damageStatisticMap = new HashMap<>();
         takeDamageStatisticMap = new HashMap<>();
+        onlineStatisticMap = new HashMap<>();
 
-        config = new File("config/sudata.cfg");
-        File configPath = config.getParentFile();
+        configfile = new File("config/sudata.cfg");
+        File configPath = configfile.getParentFile();
         backupsPath = new File("backups");
         worldPath = new File("world");
 
@@ -99,24 +101,76 @@ public class ServerUtility implements ModInitializer {
             configPath.mkdir();
         }
         //检查配置文件
-        if (!config.exists()) {
+        if (!configfile.exists()) {
             try {
-                config.createNewFile();
+                configfile.createNewFile();
+                BufferedWriter bw = new BufferedWriter(new FileWriter(configfile));
+                bw.write("{}");
+                bw.flush();
+                bw.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         //加载配置文件
-        FileInputStream fis = null;
+        BufferedReader br = null;
         try {
-            fis = new FileInputStream(config);
-            prop.load(fis);
+            br = new BufferedReader(new FileReader(configfile));
+            StringBuilder json = new StringBuilder();
+            String str;
+            while ((str = br.readLine()) != null) {
+                json.append(str);
+            }
+            configJson = new JsonParser().parse(json.toString()).getAsJsonObject();
+
+            JsonObject deathJson = configJson.getAsJsonObject("deaths");
+            JsonObject minedCountJson = configJson.getAsJsonObject("minedCount");
+            JsonObject placedCountJson = configJson.getAsJsonObject("placedCount");
+            JsonObject tradeCountJson = configJson.getAsJsonObject("tradeCount");
+            JsonObject moveJson = configJson.getAsJsonObject("move");
+            JsonObject expGetCountJson = configJson.getAsJsonObject("expGetCount");
+            JsonObject killCountJson = configJson.getAsJsonObject("killCount");
+            JsonObject damageJson = configJson.getAsJsonObject("damage");
+            JsonObject takeDamageJson = configJson.getAsJsonObject("takeDamage");
+            JsonObject onlineJson = configJson.getAsJsonObject("online");
+
+            for (String uuid:deathJson.keySet()){
+                deathsStatisticMap.put(UUID.fromString(uuid),deathJson.get(uuid).getAsInt());
+            }
+            for (String uuid:minedCountJson.keySet()){
+                minedCountStatisticMap.put(UUID.fromString(uuid),minedCountJson.get(uuid).getAsInt());
+            }
+            for (String uuid:placedCountJson.keySet()){
+                minedCountStatisticMap.put(UUID.fromString(uuid),placedCountJson.get(uuid).getAsInt());
+            }
+            for (String uuid:tradeCountJson.keySet()){
+                tradeCountStatisticMap.put(UUID.fromString(uuid),tradeCountJson.get(uuid).getAsInt());
+            }
+            for (String uuid:moveJson.keySet()){
+                moveStatisticMap.put(UUID.fromString(uuid),moveJson.get(uuid).getAsDouble());
+            }
+            for (String uuid:expGetCountJson.keySet()){
+                expGetCountStatisticMap.put(UUID.fromString(uuid),expGetCountJson.get(uuid).getAsInt());
+            }
+            for (String uuid:killCountJson.keySet()){
+                killCountStatisticMap.put(UUID.fromString(uuid),killCountJson.get(uuid).getAsInt());
+            }
+            for (String uuid:damageJson.keySet()){
+                damageStatisticMap.put(UUID.fromString(uuid),damageJson.get(uuid).getAsFloat());
+            }
+            for (String uuid:takeDamageJson.keySet()){
+                takeDamageStatisticMap.put(UUID.fromString(uuid),takeDamageJson.get(uuid).getAsFloat());
+            }
+            for (String uuid:onlineJson.keySet()){
+                onlineStatisticMap.put(UUID.fromString(uuid),onlineJson.get(uuid).getAsInt());
+            }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            if (fis != null) {
+            if (br != null) {
                 try {
-                    fis.close();
+                    br.close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
