@@ -1,6 +1,7 @@
 package com.xiang.scoreborad;
 
 import com.xiang.ServerUtility;
+import com.xiang.navigate.Navigator;
 import com.xiang.util.Info;
 import com.xiang.util.SystemInfo;
 import net.minecraft.util.Formatting;
@@ -151,38 +152,55 @@ public class AllObjective {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
                 objective.setScore(11, "-- §c§l死亡排行榜 --", CENTER);
-
+                ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(deathsStatisticMap);
                 for (int i = 0; i < 7; i++) {
+                    String color = "§e";
+                    if (i == 0)
+                        color = "§6";
+                    if (i == 1)
+                        color = "§b";
+                    if (i == 2)
+                        color = "§a";
+
+                    if (rankingList.size() > i) {
+                        Map.Entry<UUID, Integer> playerStat = rankingList.get(i);
+                        String playerName = playerNameMapping.get(playerStat.getKey());
+                        objective.setScore(10 - i, color + "#" + (i + 1) + " " + playerName + " " + playerStat.getValue(), LEFT);
+                    } else {
+                        objective.setScore(10 - i, color + "#" + (i + 1) + " " + "暂无", LEFT);
+                    }
 
                 }
             }
 
             @Override
             public int getMaxCycle() {
-                return 0;
+                return 1;
             }
         };
 
         BetterObjective mainInfo = new BetterObjective("mainInfo", "mainInfo", 12);
         mainInfo.addHeader(bottomInfoHandler);
         mainInfo.addHeader(titleHandler);
-        mainInfo.addHeader(serverInfoHandler);
+        mainInfo.addHeader(deathRankingHandler);
 
         objectiveMap.put("mainInfo", mainInfo);
     }
 
-    public static ArrayList<Map.Entry<String, Integer>> sortRankingInteger(HashMap<String, Integer> statData) {
-        ArrayList<Map.Entry<String, Integer>> sortStatData = new ArrayList<>(statData.entrySet());
+    public static ArrayList<Map.Entry<UUID, Integer>> sortRankingInteger(HashMap<UUID, Integer> statData) {
+        ArrayList<Map.Entry<UUID, Integer>> sortStatData = new ArrayList<>(statData.entrySet());
         sortStatData.sort(Comparator.comparingInt(Map.Entry::getValue));
         return sortStatData;
     }
-    public static ArrayList<Map.Entry<String, Float>> sortRankingFloat(HashMap<String, Float> statData) {
-        ArrayList<Map.Entry<String, Float>> sortStatData = new ArrayList<>(statData.entrySet());
+
+    public static ArrayList<Map.Entry<UUID, Float>> sortRankingFloat(HashMap<UUID, Float> statData) {
+        ArrayList<Map.Entry<UUID, Float>> sortStatData = new ArrayList<>(statData.entrySet());
         sortStatData.sort(Comparator.comparingDouble(Map.Entry::getValue));
         return sortStatData;
     }
-    public static ArrayList<Map.Entry<String, Double>> sortRankingDouble(HashMap<String, Double> statData) {
-        ArrayList<Map.Entry<String, Double>> sortStatData = new ArrayList<>(statData.entrySet());
+
+    public static ArrayList<Map.Entry<UUID, Double>> sortRankingDouble(HashMap<UUID, Double> statData) {
+        ArrayList<Map.Entry<UUID, Double>> sortStatData = new ArrayList<>(statData.entrySet());
         sortStatData.sort(Comparator.comparingDouble(Map.Entry::getValue));
         return sortStatData;
     }

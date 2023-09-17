@@ -77,8 +77,10 @@ public abstract class PlayerMixin {
             updatePrePos();
         }
         //死亡注入
+
         //增加缓存中玩家死亡次数
         deathsStatisticMap.put(self.getUuid(), deathsStatisticMap.get(self.getUuid()) + 1);
+        System.out.println(deathsStatisticMap.get(self.getUuid()));
         //玩家死亡消息
         playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append(getName()).append("§4趋势了"),false);
     }
