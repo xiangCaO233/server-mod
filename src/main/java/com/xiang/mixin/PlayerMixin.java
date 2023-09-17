@@ -1,12 +1,13 @@
 package com.xiang.mixin;
 
+import com.xiang.ServerUtility;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextContent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -64,6 +65,24 @@ public abstract class PlayerMixin {
         //增加缓存中玩家移动距离
         moveStatisticMap.put(playerName, moveStatisticMap.get(playerName) + moveDistance);
 
+    }
+
+    /**
+     * 玩家死亡注入
+     * @param damageSource 伤害来源
+     * @param callbackInfo
+     */
+    @Inject(at = @At("TAIL"), method = "onDeath")
+    private void playerDead(DamageSource damageSource, CallbackInfo callbackInfo) {
+        if (self == null) {
+            updatePrePos();
+        }
+        //死亡注入
+        String playerName = self.getEntityName();
+        //增加缓存中玩家死亡次数
+        deathsStatisticMap.put(playerName, deathsStatisticMap.get(playerName) + 1);
+        //玩家死亡消息
+        playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append(getName()).append("§4趋势了"),false);
     }
 
     @Inject(at = @At("TAIL"), method = "addExperience")

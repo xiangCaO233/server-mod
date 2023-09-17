@@ -8,7 +8,6 @@
     "PlayerManagerMixin",
     "PlayerMixin",
     "ServerMixin",
-    "ServerPlayerMixin",
     "TradeOutputSlotMixin",
     "ServerPlayNetworkHandlerMixin"
   ],
