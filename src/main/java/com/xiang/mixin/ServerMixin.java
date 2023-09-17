@@ -13,6 +13,7 @@ import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -86,16 +87,21 @@ public abstract class ServerMixin {
         AllObjective.initialize();
     }
 
-
+    @Unique
+    boolean skip=false;
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         //更新服务器描述信息
         setMotd(Formatting.BLUE + "Infinity Heaven " + Formatting.RESET + Formatting.OBFUSCATED + ">>无尽天堂<<  纯生存"
                 + "世界时间: " + Info.getWorldTime() + " 运行: " + Info.getRunTime() + " TPS:" + Info.getTPS() + " MSPT:" + Info.getMSPT());
         //更新所有的计分项
-        AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
-            stringBetterObjectiveEntry.getValue().updateScore();
-        });
+        skip=!skip;
+        if (skip) {
+            AllObjective.objectiveMap.entrySet().iterator().forEachRemaining(stringBetterObjectiveEntry -> {
+                stringBetterObjectiveEntry.getValue().updateScore();
+            });
+        }
+
         /*
 
         if (playerManager.getPlayerList().size() > 0) {

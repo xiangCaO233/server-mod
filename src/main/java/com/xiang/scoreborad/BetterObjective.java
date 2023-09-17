@@ -33,9 +33,9 @@ public class BetterObjective {
     ScoreboardObjective scoreObjective;
 
     /**
-     * 占位符
+     * 计分项宽度
      */
-    String placeholder;
+    int width=0;
     /**
      * 左对齐
      */
@@ -68,7 +68,7 @@ public class BetterObjective {
         setPlaceholderWidth(36);
         scoreList = new String[size];
         for (int i = 0; i < scoreList.length; i++) {
-            scoreList[i] = placeholder.substring(i);
+            scoreList[i] = " ".repeat(i+1);
         }
         scoreObjective = new ScoreboardObjective(new Scoreboard(), objectiveName, ScoreboardCriterion.DUMMY, Text.of((displayName == null ? "" : displayName)), ScoreboardCriterion.RenderType.INTEGER);
     }
@@ -88,8 +88,7 @@ public class BetterObjective {
      * @param width 长度
      */
     public void setPlaceholderWidth(int width) {
-        //构建占位符
-        placeholder = " ".repeat(width);
+       this.width=width;
     }
 
     /**
@@ -141,13 +140,8 @@ public class BetterObjective {
      * @param alignment    对齐方式 0左对齐 1右对齐 2居中
      */
     public void setScore(int index, String displayTitle, int alignment) {
-        //加工显示标题   对齐方式 0左对齐 1右对齐
-        String str = placeholder.substring(displayTitle.length());
-        switch (alignment) {
-            case 0 -> displayTitle = displayTitle + str;
-            case 1 -> displayTitle = str + displayTitle;
-            case 2 -> displayTitle = str.substring(str.length() / 2) + displayTitle + str.substring(str.length() / 2);
-        }
+        //格式化字符串
+        displayTitle=format(displayTitle,width,alignment);
 
         //检查索引
         if (index < 0 || index >= scoreList.length) {
@@ -173,20 +167,24 @@ public class BetterObjective {
      * @return 格式化后的字符串
      */
     public static String format(String displayTitle, int width, int alignment) {
+
+        // 去除颜色字符的原始字符串
+        String original = displayTitle.replaceAll("§[0-9a-zA-Z]", "");
+
         // 加工显示标题，对齐方式 0左对齐 1右对齐 2居中
-        if (width < displayTitle.length()) {
-            throw new IllegalArgumentException("Width must be greater than or equal to the length of displayTitle.");
+        if (width < original.length()) {
+            throw new RuntimeException("Width must be greater than or equal to the length of displayTitle.");
         }
 
-        int paddingSize = width - displayTitle.length();
+        int paddingSize = width - original.length();
         String padding = " ".repeat(paddingSize);
 
         return switch (alignment) {
-            case 0 -> padding + displayTitle;
-            case 1 -> displayTitle + padding;
+            case 0 ->  displayTitle ;//+ padding 
+            case 1 -> padding + displayTitle ;
             case 2 ->
                     " ".repeat((int) Math.floor(paddingSize / 2.)) + displayTitle + " ".repeat((int) Math.ceil(paddingSize / 2.));
-            default -> throw new IllegalArgumentException("Unexpected alignment value: " + alignment);
+            default -> throw new RuntimeException("Unexpected alignment value: " + alignment);
         };
     }
 
