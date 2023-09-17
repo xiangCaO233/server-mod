@@ -44,28 +44,28 @@ public class ServerUtility implements ModInitializer {
     //玩家名uuid映射表
     public static HashMap<UUID, String> playerNameMapping;
     //死亡数缓存
-    public static HashMap<String, Integer> deathsStatisticMap;
+    public static HashMap<UUID, Integer> deathsStatisticMap;
     //挖掘数缓存
-    public static HashMap<String, Integer> minedCountStatisticMap;
+    public static HashMap<UUID, Integer> minedCountStatisticMap;
     //放置数缓存
-    public static HashMap<String, Integer> placedCountStatisticMap;
+    public static HashMap<UUID, Integer> placedCountStatisticMap;
     //交易数缓存
-    public static HashMap<String, Integer> tradeCountStatisticMap;
+    public static HashMap<UUID, Integer> tradeCountStatisticMap;
     /**
      * 玩家移动统计缓存
      */
-    public static HashMap<String, Double> moveStatisticMap;
+    public static HashMap<UUID, Double> moveStatisticMap;
     //经验获取缓存
-    public static HashMap<String, Integer> expGetCountStatisticMap;
-    public static HashMap<String, Integer> killCountStatisticMap;
+    public static HashMap<UUID, Integer> expGetCountStatisticMap;
+    public static HashMap<UUID, Integer> killCountStatisticMap;
     /**
      * 玩家输出伤害缓存
      */
-    public static HashMap<String, Float> damageStatisticMap;
+    public static HashMap<UUID, Float> damageStatisticMap;
     /**
      * 玩家承受伤害缓存
      */
-    public static HashMap<String, Float> takeDamageStatisticMap;
+    public static HashMap<UUID, Float> takeDamageStatisticMap;
     /**
      * 公开的计分项 (测试)
      */
@@ -132,44 +132,45 @@ public class ServerUtility implements ModInitializer {
 
     /**
      * 检查统计表中是否存在
+     *
      * @param player 玩家名
      */
-    public static void checkStatistic(PlayerEntity player){
-        String name = player.getName().getString();
-        if (!deathsStatisticMap.containsKey(name)){
-            deathsStatisticMap.put(name,0);
+    public static void checkStatistic(PlayerEntity player) {
+        UUID uuid = player.getUuid();
+        if (!deathsStatisticMap.containsKey(uuid)) {
+            deathsStatisticMap.put(uuid, 0);
         }
-        if (!minedCountStatisticMap.containsKey(name)){
-            minedCountStatisticMap.put(name,0);
+        if (!minedCountStatisticMap.containsKey(uuid)) {
+            minedCountStatisticMap.put(uuid, 0);
         }
-        if (!placedCountStatisticMap.containsKey(name)){
-            placedCountStatisticMap.put(name,0);
+        if (!placedCountStatisticMap.containsKey(uuid)) {
+            placedCountStatisticMap.put(uuid, 0);
         }
-        if (!tradeCountStatisticMap.containsKey(name)){
-            tradeCountStatisticMap.put(name,0);
+        if (!tradeCountStatisticMap.containsKey(uuid)) {
+            tradeCountStatisticMap.put(uuid, 0);
         }
-        if (!expGetCountStatisticMap.containsKey(name)){
-            expGetCountStatisticMap.put(name,0);
+        if (!expGetCountStatisticMap.containsKey(uuid)) {
+            expGetCountStatisticMap.put(uuid, 0);
         }
-        if (!moveStatisticMap.containsKey(name)){
-            moveStatisticMap.put(name,0.0);
+        if (!moveStatisticMap.containsKey(uuid)) {
+            moveStatisticMap.put(uuid, 0.0);
         }
-        if (!damageStatisticMap.containsKey(name)){
-            damageStatisticMap.put(name,0f);
+        if (!damageStatisticMap.containsKey(uuid)) {
+            damageStatisticMap.put(uuid, 0f);
         }
-        if (!takeDamageStatisticMap.containsKey(name)){
-            takeDamageStatisticMap.put(name,0f);
+        if (!takeDamageStatisticMap.containsKey(uuid)) {
+            takeDamageStatisticMap.put(uuid, 0f);
         }
-        if (!killCountStatisticMap.containsKey(name)){
-            killCountStatisticMap.put(name,0);
+        if (!killCountStatisticMap.containsKey(uuid)) {
+            killCountStatisticMap.put(uuid, 0);
         }
     }
 
     public static void startBackupTimer() {
         backupTimer = new Thread(() -> {
             while (!stopBackupT) {
-                playerManager.broadcast(Text.of(Formatting.GOLD +"开始备份"), false);
-                playerManager.broadcast(Text.of((Formatting.GREEN+"备份花费:"+Formatting.RESET + ServerUtility.createBackup() + "ms")), false);
+                playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
+                playerManager.broadcast(Text.of((Formatting.GREEN + "备份花费:" + Formatting.RESET + ServerUtility.createBackup() + "ms")), false);
                 try {
                     Thread.sleep(60000 * 15);
                 } catch (InterruptedException e) {
@@ -210,15 +211,15 @@ public class ServerUtility implements ModInitializer {
 
     public static long createBackup() {
         File[] backups = Objects.requireNonNull(backupsPath.listFiles());
-        if (backups.length >= 5){
+        if (backups.length >= 5) {
             //保留五个备份
             ArrayList<Date> dates = new ArrayList<>();
-            HashMap<Date,File> fileMap = new HashMap<>();
-            for (File file:backups){
+            HashMap<Date, File> fileMap = new HashMap<>();
+            for (File file : backups) {
                 //LOGGER.info("处理文件:" + file);
                 Date date = new Date(file.lastModified());
                 dates.add(date);
-                fileMap.put(date,file);
+                fileMap.put(date, file);
             }
             dates.sort(Date::compareTo);
             File earliestFile = fileMap.get(dates.get(0));

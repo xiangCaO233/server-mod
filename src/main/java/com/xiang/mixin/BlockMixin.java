@@ -25,20 +25,19 @@ public class BlockMixin {
     @Inject(at = @At("TAIL"), method = "afterBreak")
     private void playerBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
         //更新玩家挖掘计分板
-        String name = player.getName().getString();
         //增加缓存中玩家挖掘次数
-        minedCountStatisticMap.put(name, minedCountStatisticMap.get(name) + 1);
+        minedCountStatisticMap.put(player.getUuid(), minedCountStatisticMap.get(player.getUuid()) + 1);
 
     }
+
 
     @Inject(at = @At("TAIL"), method = "onPlaced")
     private void playerPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack, CallbackInfo ci) {
         //更新玩家放置计分板
         if (placer instanceof PlayerEntity player) {
             //更新玩家放置计分板
-            String name = player.getName().getString();
             //增加缓存中玩家放置次数
-            placedCountStatisticMap.put(name, placedCountStatisticMap.get(name) + 1);
+            placedCountStatisticMap.put(player.getUuid(), placedCountStatisticMap.get(player.getUuid()) + 1);
 
             /*ScoreboardObjective objective = player.getScoreboard().getObjective("placedCount");
             if (objective != null) {

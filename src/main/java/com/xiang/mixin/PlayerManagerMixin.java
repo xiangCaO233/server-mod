@@ -40,7 +40,7 @@ public abstract class PlayerManagerMixin {
      */
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        String playerName = player.getName().getString();
+        String playerName = player.getEntityName();
         if (!connection.getAddress().toString().contains("127.0.0.1")) {
             onlinePlayers.add(player);
         }

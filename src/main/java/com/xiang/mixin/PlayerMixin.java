@@ -63,8 +63,7 @@ public abstract class PlayerMixin {
         updatePrePos();
         String playerName = self.getEntityName();
         //增加缓存中玩家移动距离
-        moveStatisticMap.put(playerName, moveStatisticMap.get(playerName) + moveDistance);
-
+        moveStatisticMap.put(self.getUuid(), moveStatisticMap.get(self.getUuid()) + moveDistance);
     }
 
     /**
@@ -78,9 +77,8 @@ public abstract class PlayerMixin {
             updatePrePos();
         }
         //死亡注入
-        String playerName = self.getEntityName();
         //增加缓存中玩家死亡次数
-        deathsStatisticMap.put(playerName, deathsStatisticMap.get(playerName) + 1);
+        deathsStatisticMap.put(self.getUuid(), deathsStatisticMap.get(self.getUuid()) + 1);
         //玩家死亡消息
         playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append(getName()).append("§4趋势了"),false);
     }
@@ -91,9 +89,8 @@ public abstract class PlayerMixin {
             updatePrePos();
         }
         //更新计分板
-        String playerName = self.getEntityName();
         //增加缓存中玩家经验获取
-        expGetCountStatisticMap.put(playerName, expGetCountStatisticMap.get(playerName) + experience);
+        expGetCountStatisticMap.put(self.getUuid(), expGetCountStatisticMap.get(self.getUuid()) + experience);
 
     }
 
@@ -104,8 +101,7 @@ public abstract class PlayerMixin {
         }
         //玩家受攻击
         //增加缓存中玩家受到的伤害
-        String playerName = getEntityName();
-        takeDamageStatisticMap.put(playerName, takeDamageStatisticMap.get(playerName) + amount);
+        takeDamageStatisticMap.put(self.getUuid(), takeDamageStatisticMap.get(self.getUuid()) + amount);
     }
 
     /**

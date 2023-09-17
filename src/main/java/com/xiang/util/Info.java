@@ -52,21 +52,21 @@ public class Info {
 
         String sTime = new SimpleDateFormat(" HH:mm").format(new Date(adjustedTime));
 
-        String timeLabel ="";
+        String timeLabel = "";
         if (time < 6000) {
-            timeLabel= Formatting.GRAY + "上午";
+            timeLabel = Formatting.GRAY + "上午";
         } else if (time < 6500) {
-            timeLabel= Formatting.WHITE + "中午";
+            timeLabel = Formatting.WHITE + "中午";
         } else if (time < 12000) {
-            timeLabel= Formatting.GRAY + "下午";
+            timeLabel = Formatting.GRAY + "下午";
         } else if (time < 13800) {
-            timeLabel= Formatting.YELLOW + "日落" ;
+            timeLabel = Formatting.YELLOW + "日落";
         } else if (time < 18000) {
-            timeLabel= Formatting.BLUE + "夜晚";
+            timeLabel = Formatting.BLUE + "夜晚";
         } else if (time < 22200) {
-            timeLabel= Formatting.DARK_BLUE + "午夜" ;
+            timeLabel = Formatting.DARK_BLUE + "午夜";
         } else {
-            timeLabel= Formatting.YELLOW + "日出";
+            timeLabel = Formatting.YELLOW + "日出";
         }
 
         return Formatting.RESET + timeLabel + sTime + Formatting.RESET;
@@ -75,13 +75,15 @@ public class Info {
     /**
      * 获取运行时间
      */
-    public static String getRunTime() {
+    public static String getRunTime(boolean full) {
         long time = server.getOverworld().getTime() / 20;
         long s = time % 60;
         long m = time / 60 % 60;
         long h = time / 60 / 60 % 24;
         long d = time / 60 / 60 / 24;
-        return  (d + "天 ") + h + "小时 "+m+"分钟 "+s+"秒" + Formatting.RESET;
+        if (full)
+            return (d + "天 ") + h + "小时 " + m + "分钟 " + s + "秒" + Formatting.RESET;
+        return (d + "天 ") + h + "小时" + Formatting.RESET;
     }
 
     /**
@@ -150,9 +152,9 @@ public class Info {
 
         for (int i = 0; i < 6; i++) {
             if (mspt <= MSPT_THRESHOLD[i])
-                return Formatting.RESET + "" +  PERCENTAGE_COLORS[i] + Formatting.BOLD + new BigDecimal(mspt).setScale(2, RoundingMode.HALF_UP) + "ms"+ Formatting.RESET;
+                return Formatting.RESET + "" + PERCENTAGE_COLORS[i] + Formatting.BOLD + new BigDecimal(mspt).setScale(2, RoundingMode.HALF_UP) + "ms" + Formatting.RESET;
         }
-        return Formatting.RESET + "" +  Formatting.YELLOW + Formatting.BOLD + new BigDecimal(mspt).setScale(2, RoundingMode.HALF_UP) + "ms" + Formatting.RESET;
+        return Formatting.RESET + "" + Formatting.YELLOW + Formatting.BOLD + new BigDecimal(mspt).setScale(2, RoundingMode.HALF_UP) + "ms" + Formatting.RESET;
     }
 
     /**
@@ -164,5 +166,14 @@ public class Info {
             return Formatting.RESET + "" + Formatting.GREEN + Formatting.BOLD + "20" + Formatting.RESET;
         }
         return Formatting.RESET + "" + Formatting.RED + Formatting.BOLD + (int) (1000 / mspt) + Formatting.RESET;
+    }
+
+    /**
+     * 更新服务器描述信息
+     */
+    public static void setServerMotd() {
+        //更新服务器描述信息
+        server.setMotd("§r§a--§b§l infinity§e§l heaven§r§a --   §b无尽§e天堂    §a[原版生存]      "
+                + "§6时间: " + Info.getWorldTime() + " §6运行: §f" + Info.getRunTime(false) + " §6TPS:" + Info.getTPS() + " §6MSPT:" + Info.getMSPT());
     }
 }

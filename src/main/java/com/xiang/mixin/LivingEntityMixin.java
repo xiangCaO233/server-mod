@@ -31,8 +31,7 @@ public abstract class LivingEntityMixin{
             if (sourceAttacker instanceof PlayerEntity player){
                 //玩家攻击
                 //增加缓存中玩家造成的伤害
-                String playerName = player.getEntityName();
-                damageStatisticMap.put(playerName, damageStatisticMap.get(playerName) + amount);
+                damageStatisticMap.put(player.getUuid(), damageStatisticMap.get(player.getUuid()) + amount);
             }
         }
     }
@@ -44,8 +43,7 @@ public abstract class LivingEntityMixin{
             if (sourceAttacker instanceof PlayerEntity player){
                 //玩家攻击
                 //更新击杀计分板
-                String playerName = player.getEntityName();
-                killCountStatisticMap.put(playerName, killCountStatisticMap.get(playerName) + 1);
+                killCountStatisticMap.put(player.getUuid(), killCountStatisticMap.get(player.getUuid()) + 1);
 
             }
         }

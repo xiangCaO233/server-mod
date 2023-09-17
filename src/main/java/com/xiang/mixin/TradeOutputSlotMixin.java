@@ -22,8 +22,7 @@ public class TradeOutputSlotMixin {
     @Inject(at=@At("TAIL"),method = "onTakeItem")
     private void onPlayerTrade(PlayerEntity player, ItemStack stack, CallbackInfo ci){
         //更新玩家交易
-        String playerName = player.getName().getString();
-        tradeCountStatisticMap.put(playerName,tradeCountStatisticMap.get(playerName)+1);
+        tradeCountStatisticMap.put(player.getUuid(),tradeCountStatisticMap.get(player.getUuid())+1);
     }
 
 }
