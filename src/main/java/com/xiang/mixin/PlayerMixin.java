@@ -35,8 +35,6 @@ public abstract class PlayerMixin extends Entity {
     double previousY;
     @Unique
     double previousZ;
-    @Unique
-    PlayerEntity self;
 
     public PlayerMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -57,9 +55,9 @@ public abstract class PlayerMixin extends Entity {
         }
         //计算移动距离
         double moveDistance = Math.sqrt(
-                Math.pow(self.getX() - previousX, 2) +
-                        Math.pow(self.getY() - previousY, 2) +
-                        Math.pow(self.getZ() - previousZ, 2)
+                Math.pow(getX() - previousX, 2) +
+                        Math.pow(getY() - previousY, 2) +
+                        Math.pow(getZ() - previousZ, 2)
         );
         updatePrePos();
         String playerName = getEntityName();
@@ -89,8 +87,8 @@ public abstract class PlayerMixin extends Entity {
      */
     @Unique
     private void updatePrePos() {
-        previousX = self.getX();
-        previousY = self.getY();
-        previousZ = self.getZ();
+        previousX = getX();
+        previousY = getY();
+        previousZ = getZ();
     }
 }
