@@ -8,8 +8,9 @@
     "PlayerManagerMixin",
     "PlayerMixin",
     "ServerMixin",
-    "TradeOutputSlotMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayerEntityMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "TradeOutputSlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
