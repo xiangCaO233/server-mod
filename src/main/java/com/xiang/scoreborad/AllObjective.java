@@ -1,6 +1,7 @@
 package com.xiang.scoreborad;
 
 import com.xiang.ServerUtility;
+import com.xiang.alona.AlonaThread;
 import com.xiang.util.Info;
 import com.xiang.util.SystemInfo;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -78,8 +79,9 @@ public class AllObjective {
             ""
     };
 
-    static ArrayList<BetterObjective> autoLoops = new ArrayList<>();
-    static int autoLoopIndex = 0;
+    public static ArrayDeque<ObjectiveHandler> autoLoops = new ArrayDeque<>();
+
+    public static BetterObjective autoLoopObjective;
 
     public static void initialize() {
 
@@ -87,7 +89,7 @@ public class AllObjective {
         ObjectiveHandler titleHandler = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
-                objective.setTitle(
+                objective.setObjectiveTitle(
                         titleEffect[cycle]
                 );
             }
@@ -121,9 +123,13 @@ public class AllObjective {
         ObjectiveHandler serverInfoHandler = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
+                {
+                    StringBuilder stringBuilder = new StringBuilder("-- 服务器信息 --       ");
+                    stringBuilder.insert(cycle + 2, "§b§l");
+                    stringBuilder.insert(cycle, "§e§l");
+                    objective.setScore(11, "§b§l" + stringBuilder.toString().replaceAll(" ", ""), CENTER);
+                }
 
-
-                objective.setScore(11, "-- 服务器信息 --", CENTER);
                 objective.setScore(10, "欢迎来到 §6[ " + (cycle % 8 < 4 ? "§b§lI§e§lH" : "§e§lI§b§lH") + " §r§6]§f 服务器!", LEFT);
                 {
                     StringBuilder stringBuilder = new StringBuilder("937403431          ");
@@ -131,7 +137,7 @@ public class AllObjective {
                     stringBuilder.insert(cycle, "§f");
                     objective.setScore(9, "我们的群 : §b" + stringBuilder, LEFT);
                 }
-                objective.setScore(8, " Alona  : " + (false ? "§a已连接" : (cycle % 8 < 4 ? "§4未连接" : "§c未连接")), LEFT);
+                objective.setScore(8, " Alona  : " + (AlonaThread.isConnect ? "§a已连接" : (cycle % 8 < 4 ? "§4未连接" : "§c未连接")), LEFT);
                 {
                     StringBuilder stringBuilder = new StringBuilder("zedo.top:1234          ");
                     stringBuilder.insert(cycle + 3, "§b");
@@ -431,48 +437,32 @@ public class AllObjective {
         levelRankingObjective.addHeader(titleHandler);
         levelRankingObjective.addHeader(levelRankingHandler);
 
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(deathRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(minedRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(placedRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(tradeRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(moveRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(expGetRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(killRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(damageRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(takeDamageRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(onlineRankingObjective);
-        autoLoops.add(serverInfoObjective);
-        autoLoops.add(levelRankingObjective);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(deathRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(minedRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(placedRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(tradeRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(moveRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(expGetRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(killRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(damageRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(takeDamageRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(onlineRankingHandler);
+        autoLoops.add(serverInfoHandler);
+        autoLoops.add(levelRankingHandler);
 
-        BetterObjective autoLoopObjective = new BetterObjective("autoLoopObjective", "autoLoopObjective", 12);
+        autoLoopObjective = new BetterObjective("autoLoopObjective", "autoLoopObjective", 12);
         autoLoopObjective.addHeader(bottomInfoHandler);
         autoLoopObjective.addHeader(titleHandler);
-        autoLoopObjective.addHeader(new ObjectiveHandler() {
-
-            @Override
-            public void onObjectiveUpdate(BetterObjective objective, int cycle) {
-                //setPlayerObjective();
-                autoLoopIndex++;
-                if (autoLoopIndex >= autoLoops.size()) {
-                    autoLoopIndex = 0;
-                }
-            }
-
-            @Override
-            public int getMaxCycle() {
-                return 0;
-            }
-        });
         autoLoopObjective.addHeader(onlineRankingHandler);
 
         objectiveMap.put("serverInfo", serverInfoObjective);
@@ -487,6 +477,7 @@ public class AllObjective {
         objectiveMap.put("takeDamageRanking", takeDamageRankingObjective);
         objectiveMap.put("onlineRanking", onlineRankingObjective);
         objectiveMap.put("levelRanking", levelRankingObjective);
+        objectiveMap.put("autoLoop", autoLoopObjective);
     }
 
     public static boolean setPlayerObjective(ServerPlayerEntity player, String objectiveName) {
@@ -511,22 +502,22 @@ public class AllObjective {
     private static void printRankDouble(BetterObjective objective, HashMap<UUID, Double> placedCountStatisticMap, String unit) {
         ArrayList<Map.Entry<UUID, Double>> rankingList = sortRankingDouble(placedCountStatisticMap);
         for (int i = 0; i < 7; i++) {
-            String color = "§e🏅";
+            String color = "§e";
             if (i == 0)
-                color = "§6🥇";
+                color = "§6";
             if (i == 1)
-                color = "§b🥈";
+                color = "§b";
             if (i == 2)
-                color = "§a🥉";
+                color = "§a";
 
             if (rankingList.size() > i) {
                 Map.Entry<UUID, Double> playerStat = rankingList.get(rankingList.size() - 1 - i);
                 String playerName = playerNameMapping.get(playerStat.getKey());
-                objective.setScore(10 - i, color + " " +
+                objective.setScore(10 - i, color + (i + 1) + " " +
                         BetterObjective.format(playerName, 16, LEFT) +
                         BetterObjective.format(Info.unitConversion(playerStat.getValue().intValue()) + unit, 14, RIGHT), LEFT);
             } else {
-                objective.setScore(10 - i, color + " 暂无", LEFT);
+                objective.setScore(10 - i, color + (i + 1) + " 暂无", LEFT);
             }
 
         }
@@ -535,22 +526,22 @@ public class AllObjective {
     private static void printRankInteger(BetterObjective objective, HashMap<UUID, Integer> placedCountStatisticMap, String unit) {
         ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(placedCountStatisticMap);
         for (int i = 0; i < 7; i++) {
-            String color = "§e🏅";
+            String color = "§e";
             if (i == 0)
-                color = "§6🥇";
+                color = "§6";
             if (i == 1)
-                color = "§b🥈";
+                color = "§b";
             if (i == 2)
-                color = "§a🥉";
+                color = "§a";
 
             if (rankingList.size() > i) {
                 Map.Entry<UUID, Integer> playerStat = rankingList.get(rankingList.size() - 1 - i);
                 String playerName = playerNameMapping.get(playerStat.getKey());
-                objective.setScore(10 - i, color + " " +
+                objective.setScore(10 - i, color + (i + 1) + " " +
                         BetterObjective.format(playerName, 16, LEFT) +
                         BetterObjective.format(Info.unitConversion(playerStat.getValue()) + unit, 14, RIGHT), LEFT);
             } else {
-                objective.setScore(10 - i, color + " 暂无", LEFT);
+                objective.setScore(10 - i, color + (i + 1) + " 暂无", LEFT);
             }
 
         }
@@ -559,13 +550,13 @@ public class AllObjective {
     private static void printRankIntegerTime(BetterObjective objective, HashMap<UUID, Integer> placedCountStatisticMap) {
         ArrayList<Map.Entry<UUID, Integer>> rankingList = sortRankingInteger(placedCountStatisticMap);
         for (int i = 0; i < 7; i++) {
-            String color = "§e🏅";
+            String color = "§e";
             if (i == 0)
-                color = "§6🥇";
+                color = "§6";
             if (i == 1)
-                color = "§b🥈";
+                color = "§b";
             if (i == 2)
-                color = "§a🥉";
+                color = "§a";
 
             if (rankingList.size() > i) {
                 Map.Entry<UUID, Integer> playerStat = rankingList.get(rankingList.size() - 1 - i);
@@ -573,11 +564,11 @@ public class AllObjective {
                 if (playerName == null) {
                     playerName = "未知玩家";
                 }
-                objective.setScore(10 - i, color + " " +
+                objective.setScore(10 - i, color + (i + 1) + " " +
                         BetterObjective.format(playerName, 16, LEFT) +
                         BetterObjective.format(Info.timeUnitConversion(playerStat.getValue()), 14, RIGHT), LEFT);
             } else {
-                objective.setScore(10 - i, color + " 暂无", LEFT);
+                objective.setScore(10 - i, color + (i + 1) + " 暂无", LEFT);
             }
 
         }
@@ -586,22 +577,22 @@ public class AllObjective {
     private static void printRankFloatHealth(BetterObjective objective, HashMap<UUID, Float> placedCountStatisticMap, String unit) {
         ArrayList<Map.Entry<UUID, Float>> rankingList = sortRankingFloat(placedCountStatisticMap);
         for (int i = 0; i < 7; i++) {
-            String color = "§e🏅";
+            String color = "§e";
             if (i == 0)
-                color = "§6🥇";
+                color = "§6";
             if (i == 1)
-                color = "§b🥈";
+                color = "§b";
             if (i == 2)
-                color = "§a🥉";
+                color = "§a";
 
             if (rankingList.size() > i) {
                 Map.Entry<UUID, Float> playerStat = rankingList.get(rankingList.size() - 1 - i);
                 String playerName = playerNameMapping.get(playerStat.getKey());
-                objective.setScore(10 - i, color + " " +
+                objective.setScore(10 - i, color + (i + 1) + " " +
                         BetterObjective.format(playerName, 16, LEFT) +
                         BetterObjective.format(Info.unitConversion(playerStat.getValue() * 2) + unit, 14, RIGHT), LEFT);
             } else {
-                objective.setScore(10 - i, color + " 暂无", LEFT);
+                objective.setScore(10 - i, color + (i + 1) + " 暂无", LEFT);
             }
 
         }

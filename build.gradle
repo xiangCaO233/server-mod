@@ -44,6 +44,7 @@ sourceSets {
 	}
 }
 dependencies {
+	implementation group: 'org.java-websocket', name: 'Java-WebSocket', version: '1.5.4'
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -83,6 +84,16 @@ java {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+
+	from {
+		configurations.compileClasspath.findAll {
+			// 搜索条件
+			it.name.contains('Socket')
+		}.collect {
+			// 处理搜索结果
+			zipTree it
+		}
 	}
 }
 

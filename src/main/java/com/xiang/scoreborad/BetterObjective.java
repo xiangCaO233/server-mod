@@ -1,6 +1,7 @@
 package com.xiang.scoreborad;
 
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.ScoreboardDisplayS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScoreboardPlayerUpdateS2CPacket;
 import net.minecraft.scoreboard.Scoreboard;
@@ -12,6 +13,8 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+
+import static net.minecraft.network.packet.s2c.play.ScoreboardObjectiveUpdateS2CPacket.*;
 
 /**
  * 更好的计分项
@@ -27,15 +30,7 @@ public class BetterObjective {
      */
     ArrayList<ServerPlayerEntity> playerList = new ArrayList<>();
 
-    /**
-     * 计分项 (原版) 1
-     */
-    ScoreboardObjective scoreObjective1;
 
-    /**
-     * 计分项 (原版) 2
-     */
-    ScoreboardObjective scoreObjective2;
     /**
      * 用于切换原版计分项
      */
@@ -66,20 +61,73 @@ public class BetterObjective {
      * 累增的周期数
      */
     int cycle = 0;
+    /**
+     * 缓存计分项1
+     */
+    ScoreboardObjective scoreObjective1;
+    /**
+     * 缓存计分项2
+     */
+    ScoreboardObjective scoreObjective2;
 
     /**
      * 创建更好的计分项
      *
      * @param size 分数列表的大小 (固定)
      */
-    public BetterObjective(String objectiveName, String displayName, int size) {
+    public BetterObjective(String objectiveName, String objectiveTitle, int size) {
         //构建占位符
         setPlaceholderWidth(36);
         scoreList = new String[size];
         for (int i = 0; i < scoreList.length; i++) {
             scoreList[i] = " ".repeat(i + 1);
         }
-        scoreObjective1 = new ScoreboardObjective(new Scoreboard(), objectiveName, ScoreboardCriterion.DUMMY, Text.of((displayName == null ? "" : displayName)), ScoreboardCriterion.RenderType.INTEGER);
+        objectiveTitle = (objectiveTitle == null ? "" : objectiveTitle);
+        scoreObjective1 = new ScoreboardObjective(new Scoreboard(), objectiveName + "_1", ScoreboardCriterion.DUMMY, Text.of(objectiveTitle), ScoreboardCriterion.RenderType.INTEGER);
+        scoreObjective2 = new ScoreboardObjective(new Scoreboard(), objectiveName + "_2", ScoreboardCriterion.DUMMY, Text.of(objectiveTitle), ScoreboardCriterion.RenderType.INTEGER);
+    }
+
+    /**
+     * 获取当前的计分板计分项
+     */
+    private ScoreboardObjective getScoreObjective() {
+        return (isScoreObjective1 ? scoreObjective1 : scoreObjective2);
+    }
+
+    /**
+     * 切换计分项
+     */
+    private void switchScoreObjective() {
+        isScoreObjective1 = !isScoreObjective1;
+    }
+
+    /**
+     * 显示给玩家
+     */
+    public void show() {
+
+        ScoreboardObjective oldObjective = getScoreObjective();
+        switchScoreObjective();
+        ScoreboardObjective newObjective = getScoreObjective();
+
+
+        //创建新计分板
+        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(newObjective, ADD_MODE));
+        sendPacket(new ScoreboardDisplayS2CPacket(Scoreboard.MAX_SIDEBAR_TEAM_DISPLAY_SLOT_ID, newObjective));
+        //sendPacket(new ScoreboardObjectiveUpdateS2CPacket(newObjective, UPDATE_MODE));
+
+
+        //发送新数据
+        for (int i = 0; i < scoreList.length; i++) {
+            sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, newObjective.getName(), scoreList[i], i));
+        }
+
+        //显示新的计分项
+        sendPacket(new ScoreboardDisplayS2CPacket(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, newObjective));
+
+        //删除旧计分项
+        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(oldObjective, REMOVE_MODE));
+        //playerList.forEach(player -> new ScoreboardDisplayS2CPacket(Scoreboard.MAX_SIDEBAR_TEAM_DISPLAY_SLOT_ID, oldObjective));
     }
 
     /**
@@ -89,6 +137,13 @@ public class BetterObjective {
      */
     public void addHeader(ObjectiveHandler handler) {
         objectiveHandler.add(handler);
+    }
+
+    /**
+     * 获得处理器列表
+     */
+    public ArrayList<ObjectiveHandler> getHeaderList() {
+        return objectiveHandler;
     }
 
     /**
@@ -111,33 +166,17 @@ public class BetterObjective {
         }
     }
 
-    /**
-     * 移除mc的分数 (原版)
-     *
-     * @param playerName 分数的玩家名
-     */
-    private void removeMCscore(String playerName) {
-        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.REMOVE, scoreObjective1.getName(), playerName, 0));
-    }
-
-    /**
-     * 修改mc的分数 (原版)
-     *
-     * @param playerName 分数的玩家名
-     * @param score      分数
-     */
-    private void modifyMCscore(String playerName, int score) {
-        sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective1.getName(), playerName, score));
-    }
 
     /**
      * 将现有的所有分数告诉指定玩家
      *
      * @param player 玩家
      */
+    @Deprecated
     public void syncAllScore(ServerPlayerEntity player) {
+        ScoreboardObjective scoreboardObjective = getScoreObjective();
         for (int i = 0; i < scoreList.length; i++) {
-            player.networkHandler.sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreObjective1.getName(), scoreList[i], i));
+            player.networkHandler.sendPacket(new ScoreboardPlayerUpdateS2CPacket(ServerScoreboard.UpdateMode.CHANGE, scoreboardObjective.getName(), scoreList[i], i));
         }
     }
 
@@ -149,25 +188,29 @@ public class BetterObjective {
      * @param alignment    对齐方式 0左对齐 1右对齐 2居中
      */
     public void setScore(int index, String displayTitle, int alignment) {
-        //格式化字符串
-        displayTitle = format(displayTitle, width, alignment);
-        displayTitle = clearTrailingSpaces(displayTitle);
-        displayTitle += "§r".repeat(index);
         //检查索引
         if (index < 0 || index >= scoreList.length) {
             throw new IllegalArgumentException("索引越界");
         }
 
+        //格式化字符串
+        displayTitle = format(displayTitle, width, alignment);
+        displayTitle = clearTrailingSpaces(displayTitle);
+        displayTitle += "§r".repeat(index);
+
 
         //检查是否修改
         if (!scoreList[index].equals(displayTitle)) {
             //更新分数
-            removeMCscore(scoreList[index]);
+            //removeMCscore(scoreList[index]);
             scoreList[index] = displayTitle;
-            modifyMCscore(displayTitle, index);
+            //modifyMCscore(displayTitle, index);
         }
     }
 
+    /**
+     * 清除尾部空格
+     */
     public static String clearTrailingSpaces(String input) {
         int i = input.length() - 1;
         while (i >= 0 && Character.isWhitespace(input.charAt(i))) {
@@ -207,26 +250,25 @@ public class BetterObjective {
     }
 
     /**
-     * 处理更新分数 (通过分数项处理器)
+     * 处理更新并显示分数 (通过分数项处理器)
      */
-    public void handlerScore() {
+    public void handlerAndShowScore() {
         for (ObjectiveHandler handler : objectiveHandler) {
             handler.onObjectiveUpdate(this, cycle % handler.getMaxCycle());
         }
         cycle++;
+        show();
     }
 
     /**
      * 修改计分项标题名
      *
-     * @param name 名字
+     * @param title 标题
      */
-    public void setTitle(@NotNull String name) {
-        //检查是否有改动
-        if (name.equals(scoreObjective1.getDisplayName().getString())) return;
-        scoreObjective1.setDisplayName(Text.of(name));
-        //更新名字
-        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective1, 2));
+    public void setObjectiveTitle(@NotNull String title) {
+        Text text = Text.of(title);
+        scoreObjective1.setDisplayName(text);
+        scoreObjective2.setDisplayName(text);
     }
 
     /**
@@ -239,12 +281,6 @@ public class BetterObjective {
         if (playerList.contains(player)) return;
         //添加到列表
         playerList.add(player);
-        //发送添加玩家
-        player.networkHandler.sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective1, 0));
-        //同步所有分数
-        syncAllScore(player);
-        //设置计分项显示的槽位
-        player.getScoreboard().setObjectiveSlot(Scoreboard.SIDEBAR_DISPLAY_SLOT_ID, scoreObjective1);
     }
 
     /**
@@ -255,8 +291,13 @@ public class BetterObjective {
     public void removePlayer(ServerPlayerEntity player) {
         //判断玩家存在
         playerList.remove(player);
+        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective1, REMOVE_MODE));
+        sendPacket(new ScoreboardObjectiveUpdateS2CPacket(scoreObjective2, REMOVE_MODE));
     }
 
+    /**
+     * 获得显示的玩家列表
+     */
     public ArrayList<ServerPlayerEntity> getPlayerList() {
         return playerList;
     }

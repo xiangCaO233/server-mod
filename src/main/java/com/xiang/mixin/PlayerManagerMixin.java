@@ -1,5 +1,6 @@
 package com.xiang.mixin;
 
+import com.xiang.alona.AlonaThread;
 import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
 import net.minecraft.network.ClientConnection;
@@ -58,12 +59,14 @@ public abstract class PlayerManagerMixin {
         //显示生命值
         scoreboard.setObjectiveSlot(Scoreboard.LIST_DISPLAY_SLOT_ID, healthObj);
         broadcast(Text.of("§6玩家" + " §b§n" + playerName + "§r §6加入了游戏！"), false);
-
+        AlonaThread.sendGroupMessage("[IH]: " + playerName + " 加入了游戏");
     }
 
     @Inject(at = @At("TAIL"), method = "remove")
     private void onPlayerRemove(ServerPlayerEntity player, CallbackInfo ci) {
-        broadcast(Text.of("§6玩家" + " §b§n" + player.getName().getString() + "§r §6退出了游戏。"), false);
+        broadcast(Text.of("§6玩家" + " §b§n" + player.getEntityName() + "§r §6退出了游戏。"), false);
+        AlonaThread.sendGroupMessage("[IH]: " + player.getEntityName() + " 退出了游戏");
+
         onlinePlayers.remove(player);
     }
 

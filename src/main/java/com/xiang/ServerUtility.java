@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.xiang.alona.AlonaThread;
 import com.xiang.scoreborad.BetterObjective;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
@@ -217,6 +218,8 @@ public class ServerUtility implements ModInitializer {
         }
         //初始化better计分板
         //betterScoreboard = new BetterScoreboard("LifeGarden","--LifeGarden--");
+        new AlonaThread().start();
+
     }
 
     /**

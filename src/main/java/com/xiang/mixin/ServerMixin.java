@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.xiang.alona.AlonaThread;
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
+import com.xiang.scoreborad.ObjectiveHandler;
 import com.xiang.util.Info;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -26,6 +28,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
@@ -90,6 +93,7 @@ public abstract class ServerMixin {
         getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, playerManager.getServer());
         Info.server = getPlayerManager().getServer();
         AllObjective.initialize();
+        AlonaThread.sendGroupMessage("[IH]: 服务器启动。");
     }
 
     @Unique
@@ -97,11 +101,23 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+
+
+        if (getTicks() % (20 * 15) == 0) {
+            ObjectiveHandler objectiveHandler = AllObjective.autoLoops.poll();
+            if (objectiveHandler != null) {
+                AllObjective.autoLoops.add(objectiveHandler);
+                ArrayList<ObjectiveHandler> handlers = AllObjective.autoLoopObjective.getHeaderList();
+                handlers.remove(handlers.size() - 1);
+                handlers.add(objectiveHandler);
+            }
+        }
+
         Info.setServerMotd();
         //更新所有的计分项
         skip = !skip;
         if (skip) {
-            AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerScore);
+            AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
         }
 
         /*
@@ -143,18 +159,18 @@ public abstract class ServerMixin {
         JsonObject playerNameJson = jsonParser.parse(gson.toJson(playerNameMapping)).getAsJsonObject();
 
         JsonObject config = new JsonObject();
-        config.add("deaths",deathsJson);
-        config.add("minedCount",minedCountJson);
-        config.add("placedCount",placedCountJson);
-        config.add("tradeCount",tradeCountJson);
-        config.add("move",moveJson);
-        config.add("expGetCount",expGetCountJson);
-        config.add("level",levelJson);
-        config.add("killCount",killCountJson);
-        config.add("damage",damageJson);
-        config.add("takeDamage",takeDamageJson);
-        config.add("online",onlineJson);
-        config.add("players",playerNameJson);
+        config.add("deaths", deathsJson);
+        config.add("minedCount", minedCountJson);
+        config.add("placedCount", placedCountJson);
+        config.add("tradeCount", tradeCountJson);
+        config.add("move", moveJson);
+        config.add("expGetCount", expGetCountJson);
+        config.add("level", levelJson);
+        config.add("killCount", killCountJson);
+        config.add("damage", damageJson);
+        config.add("takeDamage", takeDamageJson);
+        config.add("online", onlineJson);
+        config.add("players", playerNameJson);
 
         BufferedWriter bw = null;
         try {
@@ -162,7 +178,7 @@ public abstract class ServerMixin {
             bw.write(gson.toJson(config));
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             if (bw != null) {
                 try {
                     bw.flush();
@@ -176,7 +192,8 @@ public abstract class ServerMixin {
         //关闭计时器
         stopBackupT = true;
         stopNavThread = true;
-
+        AlonaThread.sendGroupMessage("[IH]: 服务器已关闭。");
+        AlonaThread.shutdown = true;
     }
 
 
