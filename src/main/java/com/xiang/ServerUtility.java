@@ -37,7 +37,7 @@ public class ServerUtility implements ModInitializer {
     public static ArrayList<PlayerEntity> usedPlayers;
     public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
-    public static Thread backupTimer;
+    public static Timer backupTimer;
     //备份停止标记
     public static boolean stopBackupT;
     //生命值积分项
@@ -195,7 +195,7 @@ public class ServerUtility implements ModInitializer {
             }
             if (playerNameJson != null) {
                 for (String uuid : playerNameJson.keySet()) {
-                    playerNameMapping.put(UUID.fromString(uuid), onlineJson.get(uuid).getAsString());
+                    playerNameMapping.put(UUID.fromString(uuid), playerNameJson.get(uuid).getAsString());
                 }
             }
 
@@ -258,8 +258,10 @@ public class ServerUtility implements ModInitializer {
     }
 
     public static void startBackupTimer() {
-        backupTimer = new Thread(() -> {
-            while (!stopBackupT) {
+        backupTimer = new Timer();
+        backupTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
                 playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
                 playerManager.broadcast(Text.of((Formatting.GREEN + "备份花费:" + Formatting.RESET + ServerUtility.createBackup() + "ms")), false);
                 try {
@@ -268,8 +270,12 @@ public class ServerUtility implements ModInitializer {
                     throw new RuntimeException(e);
                 }
             }
-        });
-        //Text.translatable(, )
+        },0,60000*15);
+    }
+    public static void stopBackupTimer(){
+        backupTimer.cancel();
+        backupTimer.purge();
+        backupTimer = null;
     }
 
 /*	public static void startScoreBoardTimer() {

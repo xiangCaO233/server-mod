@@ -10,6 +10,7 @@ import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
 import com.xiang.scoreborad.ObjectiveHandler;
 import com.xiang.util.Info;
+import com.xiang.util.ServerUtil;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -91,6 +92,10 @@ public abstract class ServerMixin {
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
         LOGGER.info("指令设置不显示死亡消息");
         getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, playerManager.getServer());
+        ServerUtil.executeCommand("carpet setDefault commandPlayer true");
+        ServerUtil.executeCommand("carpet setDefault flippinCactus true");
+        ServerUtil.executeCommand("carpet setDefault fogOff true");
+        ServerUtil.executeCommand("carpet setDefault rotatorBlock true");
         Info.server = getPlayerManager().getServer();
         AllObjective.initialize();
         AlonaThread.sendGroupMessage("[IH]: 服务器启动。");
@@ -196,10 +201,9 @@ public abstract class ServerMixin {
         }
 
         createBackup();
-        backupTimer.interrupt();
 
         //关闭计时器
-        stopBackupT = true;
+        stopBackupTimer();
         stopNavThread = true;
         AlonaThread.sendGroupMessage("[IH]: 服务器已关闭。");
         AlonaThread.shutdown = true;

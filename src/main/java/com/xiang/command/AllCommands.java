@@ -41,7 +41,7 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             //注册指令
-            dispatcher.register(
+            /*dispatcher.register(
                     literal("nav").executes((context) -> {
                                 context.getSource().sendMessage(
                                         Text.literal("请指定导航目标")
@@ -61,7 +61,7 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                                         return 1;
                                     }))
                             )
-            );
+            );*/
             dispatcher.register(
                     literal("setscoreboard").executes((context) -> {
                                 if (context.getSource().getPlayer() != null)
