@@ -147,7 +147,7 @@ public class AllObjective {
                 }
 
                 objective.setScore(6, "运行时长 : §e" + Info.getRunTime(true), LEFT);
-                objective.setScore(5, "在线人数 : §e" + ServerUtility.onlinePlayers.size() + "人", LEFT);
+                objective.setScore(5, "在线人数 : §a" + ServerUtility.onlinePlayers.size() + "§6/§f" + usedPlayers.size() + "§6人", LEFT);
                 objective.setScore(4, "游戏版本 : §e1.20.1", LEFT);
 
             }
