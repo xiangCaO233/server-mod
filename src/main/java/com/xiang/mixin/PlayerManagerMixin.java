@@ -48,6 +48,8 @@ public abstract class PlayerManagerMixin {
         AllObjective.setPlayerObjective(player, "serverInfo");
 
         playerNameMapping.put(player.getUuid(), playerName);
+
+        levelMap.put(player.getUuid(), player.experienceLevel);
         checkStatistic(player);
 
         Scoreboard scoreboard = player.getScoreboard();

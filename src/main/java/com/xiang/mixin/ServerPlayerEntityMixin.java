@@ -16,9 +16,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static com.xiang.ServerUtility.deathsStatisticMap;
-import static com.xiang.ServerUtility.onlineStatisticMap;
+import static com.xiang.ServerUtility.*;
+import static com.xiang.ServerUtility.takeDamageStatisticMap;
 import static com.xiang.navigate.Navigator.playerManager;
 
 /**

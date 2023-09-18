@@ -135,10 +135,12 @@ public abstract class ServerMixin {
         JsonObject tradeCountJson = jsonParser.parse(gson.toJson(tradeCountStatisticMap)).getAsJsonObject();
         JsonObject moveJson = jsonParser.parse(gson.toJson(moveStatisticMap)).getAsJsonObject();
         JsonObject expGetCountJson = jsonParser.parse(gson.toJson(expGetCountStatisticMap)).getAsJsonObject();
+        JsonObject levelJson = jsonParser.parse(gson.toJson(levelMap)).getAsJsonObject();
         JsonObject killCountJson = jsonParser.parse(gson.toJson(killCountStatisticMap)).getAsJsonObject();
         JsonObject damageJson = jsonParser.parse(gson.toJson(damageStatisticMap)).getAsJsonObject();
         JsonObject takeDamageJson = jsonParser.parse(gson.toJson(takeDamageStatisticMap)).getAsJsonObject();
         JsonObject onlineJson = jsonParser.parse(gson.toJson(onlineStatisticMap)).getAsJsonObject();
+        JsonObject playerNameJson = jsonParser.parse(gson.toJson(playerNameMapping)).getAsJsonObject();
 
         JsonObject config = new JsonObject();
         config.add("deaths",deathsJson);
@@ -147,10 +149,12 @@ public abstract class ServerMixin {
         config.add("tradeCount",tradeCountJson);
         config.add("move",moveJson);
         config.add("expGetCount",expGetCountJson);
+        config.add("level",levelJson);
         config.add("killCount",killCountJson);
         config.add("damage",damageJson);
         config.add("takeDamage",takeDamageJson);
         config.add("online",onlineJson);
+        config.add("players",playerNameJson);
 
         BufferedWriter bw = null;
         try {

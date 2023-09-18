@@ -58,6 +58,7 @@ public class ServerUtility implements ModInitializer {
     public static HashMap<UUID, Double> moveStatisticMap;
     //经验获取缓存
     public static HashMap<UUID, Integer> expGetCountStatisticMap;
+    public static HashMap<UUID, Integer> levelMap;
     public static HashMap<UUID, Integer> killCountStatisticMap;
     /**
      * 玩家输出伤害缓存
@@ -85,6 +86,7 @@ public class ServerUtility implements ModInitializer {
         placedCountStatisticMap = new HashMap<>();
         tradeCountStatisticMap = new HashMap<>();
         expGetCountStatisticMap = new HashMap<>();
+        levelMap = new HashMap<>();
         killCountStatisticMap = new HashMap<>();
         moveStatisticMap = new HashMap<>();
         damageStatisticMap = new HashMap<>();
@@ -197,47 +199,6 @@ public class ServerUtility implements ModInitializer {
                 }
             }
 
-            JsonObject deathJson = configJson.getAsJsonObject("deaths");
-            JsonObject minedCountJson = configJson.getAsJsonObject("minedCount");
-            JsonObject placedCountJson = configJson.getAsJsonObject("placedCount");
-            JsonObject tradeCountJson = configJson.getAsJsonObject("tradeCount");
-            JsonObject moveJson = configJson.getAsJsonObject("move");
-            JsonObject expGetCountJson = configJson.getAsJsonObject("expGetCount");
-            JsonObject killCountJson = configJson.getAsJsonObject("killCount");
-            JsonObject damageJson = configJson.getAsJsonObject("damage");
-            JsonObject takeDamageJson = configJson.getAsJsonObject("takeDamage");
-            JsonObject onlineJson = configJson.getAsJsonObject("online");
-
-            for (String uuid:deathJson.keySet()){
-                deathsStatisticMap.put(UUID.fromString(uuid),deathJson.get(uuid).getAsInt());
-            }
-            for (String uuid:minedCountJson.keySet()){
-                minedCountStatisticMap.put(UUID.fromString(uuid),minedCountJson.get(uuid).getAsInt());
-            }
-            for (String uuid:placedCountJson.keySet()){
-                minedCountStatisticMap.put(UUID.fromString(uuid),placedCountJson.get(uuid).getAsInt());
-            }
-            for (String uuid:tradeCountJson.keySet()){
-                tradeCountStatisticMap.put(UUID.fromString(uuid),tradeCountJson.get(uuid).getAsInt());
-            }
-            for (String uuid:moveJson.keySet()){
-                moveStatisticMap.put(UUID.fromString(uuid),moveJson.get(uuid).getAsDouble());
-            }
-            for (String uuid:expGetCountJson.keySet()){
-                expGetCountStatisticMap.put(UUID.fromString(uuid),expGetCountJson.get(uuid).getAsInt());
-            }
-            for (String uuid:killCountJson.keySet()){
-                killCountStatisticMap.put(UUID.fromString(uuid),killCountJson.get(uuid).getAsInt());
-            }
-            for (String uuid:damageJson.keySet()){
-                damageStatisticMap.put(UUID.fromString(uuid),damageJson.get(uuid).getAsFloat());
-            }
-            for (String uuid:takeDamageJson.keySet()){
-                takeDamageStatisticMap.put(UUID.fromString(uuid),takeDamageJson.get(uuid).getAsFloat());
-            }
-            for (String uuid:onlineJson.keySet()){
-                onlineStatisticMap.put(UUID.fromString(uuid),onlineJson.get(uuid).getAsInt());
-            }
 
         } catch (IOException e) {
             throw new RuntimeException(e);

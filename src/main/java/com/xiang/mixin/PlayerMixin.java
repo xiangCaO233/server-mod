@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextContent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,49 +30,48 @@ import static com.xiang.navigate.Navigator.playerManager;
  */
 @Mixin(PlayerEntity.class)
 public abstract class PlayerMixin extends Entity {
+    @Shadow public int experienceLevel;
     @Unique
     double previousX;
     @Unique
     double previousY;
     @Unique
     double previousZ;
+    @Unique
+    DimensionType lastDimension;
 
     public PlayerMixin(EntityType<?> type, World world) {
         super(type, world);
     }
-
-
-    @Shadow
-    public abstract PlayerInventory getInventory();
-
-    @Shadow
-    public abstract Scoreboard getScoreboard();
-
 
     @Inject(at = @At("TAIL"), method = "tickMovement")
     private void afterPlayerMove(CallbackInfo ci) {
         if (previousX == 0 && previousY == 0 && previousZ == 0) {
             //初次加载
             updatePrePos();
+            lastDimension = getWorld().getDimension();
         }
+        //System.out.println(getWorld().getDimension());
         //计算移动距离
-        double moveDistance = Math.sqrt(
-                Math.pow(getX() - previousX, 2) +
-                        Math.pow(getY() - previousY, 2) +
-                        Math.pow(getZ() - previousZ, 2)
-        );
+        double moveDistance = 0;
+        if(lastDimension == getWorld().getDimension()){
+            moveDistance = Math.sqrt(
+                    Math.pow(getX() - previousX, 2) +
+                            Math.pow(getY() - previousY, 2) +
+                            Math.pow(getZ() - previousZ, 2)
+            );
+        }
         updatePrePos();
-        String playerName = getEntityName();
         //增加缓存中玩家移动距离
         moveStatisticMap.put(getUuid(), moveStatisticMap.get(getUuid()) + moveDistance);
     }
 
     @Inject(at = @At("TAIL"), method = "addExperience")
     private void onPlayerGetExp(int experience, CallbackInfo ci) {
-
         //更新计分板
         //增加缓存中玩家经验获取
         expGetCountStatisticMap.put(getUuid(), expGetCountStatisticMap.get(getUuid()) + experience);
+        levelMap.put(getUuid(), experienceLevel);
 
     }
 
@@ -82,6 +82,7 @@ public abstract class PlayerMixin extends Entity {
         //增加缓存中玩家受到的伤害
         takeDamageStatisticMap.put(getUuid(), takeDamageStatisticMap.get(getUuid()) + amount);
     }
+
 
     /**
      * 更新上次玩家位置
