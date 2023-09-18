@@ -37,7 +37,7 @@ public class ServerUtility implements ModInitializer {
     public static ArrayList<PlayerEntity> usedPlayers;
     public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
-    static Thread backupTimer;
+    public static Thread backupTimer;
     //备份停止标记
     public static boolean stopBackupT;
     //生命值积分项
@@ -70,10 +70,8 @@ public class ServerUtility implements ModInitializer {
      */
     public static HashMap<UUID, Float> takeDamageStatisticMap;
     public static HashMap<UUID, Integer> onlineStatisticMap;
-    /**
-     * 公开的计分项 (测试)
-     */
-    public static BetterObjective betterObjective = new BetterObjective("scoreboard", "尼玛", 10);
+
+    public static HashMap<UUID, String> playerUsedObjectiveMap;
 
     @Override
     public void onInitialize() {
@@ -93,6 +91,7 @@ public class ServerUtility implements ModInitializer {
         damageStatisticMap = new HashMap<>();
         takeDamageStatisticMap = new HashMap<>();
         onlineStatisticMap = new HashMap<>();
+        playerUsedObjectiveMap = new HashMap<>();
 
         configfile = new File("config/sudata.cfg");
         File configPath = configfile.getParentFile();

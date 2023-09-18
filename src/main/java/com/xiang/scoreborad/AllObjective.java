@@ -82,6 +82,7 @@ public class AllObjective {
     public static ArrayDeque<ObjectiveHandler> autoLoops = new ArrayDeque<>();
 
     public static BetterObjective autoLoopObjective;
+    public static ObjectiveHandler serverInfoHandler;
 
     public static void initialize() {
 
@@ -120,7 +121,7 @@ public class AllObjective {
             }
         };
         //服务器信息 4-11
-        ObjectiveHandler serverInfoHandler = new ObjectiveHandler() {
+        serverInfoHandler = new ObjectiveHandler() {
             @Override
             public void onObjectiveUpdate(BetterObjective objective, int cycle) {
                 {
@@ -481,6 +482,8 @@ public class AllObjective {
     }
 
     public static boolean setPlayerObjective(ServerPlayerEntity player, String objectiveName) {
+        if (objectiveName == null)
+            objectiveName = "autoLoop";
         BetterObjective target = objectiveMap.get(objectiveName);
         if (target == null)
             return false;
@@ -488,6 +491,7 @@ public class AllObjective {
             objective.removePlayer(player);
         }
         target.addPlayer(player);
+        playerUsedObjectiveMap.put(player.getUuid(), objectiveName);
         return true;
     }
 

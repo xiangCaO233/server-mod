@@ -99,18 +99,24 @@ public abstract class ServerMixin {
     @Unique
     boolean skip = false;
 
+    long lastTime = 0;
+
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
 
+        ObjectiveHandler objectiveHandler = AllObjective.autoLoops.peek();
 
-        if (getTicks() % (20 * 15) == 0) {
-            ObjectiveHandler objectiveHandler = AllObjective.autoLoops.poll();
+
+        if (lastTime < System.currentTimeMillis() - (AllObjective.serverInfoHandler.equals(objectiveHandler) ? 15000 : 6000)) {
+            objectiveHandler = AllObjective.autoLoops.poll();
+
             if (objectiveHandler != null) {
                 AllObjective.autoLoops.add(objectiveHandler);
                 ArrayList<ObjectiveHandler> handlers = AllObjective.autoLoopObjective.getHeaderList();
                 handlers.remove(handlers.size() - 1);
                 handlers.add(objectiveHandler);
             }
+            lastTime = System.currentTimeMillis();
         }
 
         Info.setServerMotd();
@@ -189,11 +195,15 @@ public abstract class ServerMixin {
             }
         }
 
+        createBackup();
+        backupTimer.interrupt();
+
         //关闭计时器
         stopBackupT = true;
         stopNavThread = true;
         AlonaThread.sendGroupMessage("[IH]: 服务器已关闭。");
         AlonaThread.shutdown = true;
+
     }
 
 

@@ -9,6 +9,7 @@ import com.xiang.navigate.Navigator;
 import com.xiang.navigate.PlayerNavDestination;
 import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
+import com.xiang.util.ServerUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,6 +17,8 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextVisitFactory;
 import net.minecraft.util.Formatting;
@@ -61,7 +64,8 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
             );
             dispatcher.register(
                     literal("setscoreboard").executes((context) -> {
-
+                                if (context.getSource().getPlayer() != null)
+                                    ServerUtil.executeCommand("tellraw " + context.getSource().getPlayer().getEntityName() + " [{\"text\":\"     ----  计分板切换菜单  ----\",\"color\":\"gold\"},{\"text\":\"   \"},{\"text\":\"[循环]\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard autoLoop\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"15s内循环播放榜单和信息\"}},{\"text\":\"\\n   \"},{\"text\":\"[服务器]\",\"color\":\"aqua\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard serverInfo\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"服务器的信息\"}},{\"text\":\"   \"},{\"text\":\"[死亡榜]\",\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard deathRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"死亡次数排行榜\"}},{\"text\":\"   \"},{\"text\":\"[挖掘榜]\",\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard minedRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"挖掘方块数量排行榜\"}},{\"text\":\"\\n   \"},{\"text\":\"[放置榜]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard placedRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"放置方块数量排行榜\"}},{\"text\":\"   \"},{\"text\":\"[交易榜]\",\"color\":\"dark_green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard tradeRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"村民交易次数排行榜\"}},{\"text\":\"   \"},{\"text\":\"[移动榜]\",\"color\":\"dark_blue\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard moveRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"移动距离排行榜\"}},{\"text\":\"\\n   \"},{\"text\":\"[经验榜]\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard expGetRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"获得经验值榜\"}},{\"text\":\"   \"},{\"text\":\"[击杀榜]\",\"color\":\"dark_purple\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard killRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"击杀生物或玩家数量榜\"}},{\"text\":\"   \"},{\"text\":\"[伤害榜]\",\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard damageRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"对生物造成的伤害量榜\"}},{\"text\":\"\\n   \"},{\"text\":\"[受伤榜]\",\"color\":\"dark_red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard takeDamageRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"收到伤害量榜\"}},{\"text\":\"   \"},{\"text\":\"[在线榜]\",\"color\":\"white\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard onlineRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"在线时间榜\"}},{\"text\":\"   \"},{\"text\":\"[等级榜]\",\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/setscoreboard levelRanking\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"玩家现有等级榜\"}}]");
                                 return 1;
                             }).
                             then(argument("你想要显示的计分项", word()).suggests(new ScoreBoardCommandSugp()).executes((commandContext -> {
@@ -71,12 +75,10 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                                 if (name == null) {
                                     return 0;
                                 }
-                                if ("auto-loop".equals(args[1])) {
-                                    //设置auto
-                                    player.sendMessage(Text.of("已设置自动轮换计分板"));
-                                } else {
+                                {
+                                    player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.AMBIENT, 0.2f, 1);
                                     //指定计分板
-                                    player.sendMessage(Text.of("已设置指定计分板:" + args[1]));
+                                    //player.sendMessage(Text.of("已设置指定计分板:" + args[1]));
                                     AllObjective.setPlayerObjective(player, args[1]);
                                 }
                                 return 1;

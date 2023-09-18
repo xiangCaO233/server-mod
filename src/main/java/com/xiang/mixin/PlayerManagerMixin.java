@@ -46,7 +46,8 @@ public abstract class PlayerManagerMixin {
             onlinePlayers.add(player);
         }
 
-        AllObjective.setPlayerObjective(player, "serverInfo");
+
+        AllObjective.setPlayerObjective(player, playerUsedObjectiveMap.get(player.getUuid()));
 
         playerNameMapping.put(player.getUuid(), playerName);
 
