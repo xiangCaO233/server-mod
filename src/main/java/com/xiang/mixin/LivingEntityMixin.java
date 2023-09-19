@@ -20,30 +20,37 @@ import static com.xiang.ServerUtility.killCountStatisticMap;
  * @author xiang2333
  */
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin{
+public abstract class LivingEntityMixin {
 
 
-    @Inject(at=@At("TAIL"),method = "damage")
-    private void entityOnDamaged(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir){
+    @Inject(at = @At("TAIL"), method = "damage")
+    private void entityOnDamaged(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         //实体受伤
         Entity sourceAttacker = source.getAttacker();
         if (sourceAttacker != null) {
-            if (sourceAttacker instanceof PlayerEntity player){
+            if (sourceAttacker instanceof PlayerEntity player) {
                 //玩家攻击
                 //增加缓存中玩家造成的伤害
-                damageStatisticMap.put(player.getUuid(), damageStatisticMap.get(player.getUuid()) + amount);
+                Float value = damageStatisticMap.get(player.getUuid());
+                if (value != null) {
+                    damageStatisticMap.put(player.getUuid(), value + amount);
+                }
             }
         }
     }
-    @Inject(at=@At("TAIL"),method = "onDeath")
-    private void entityOnDamaged(DamageSource damageSource, CallbackInfo ci){
+
+    @Inject(at = @At("TAIL"), method = "onDeath")
+    private void entityOnDamaged(DamageSource damageSource, CallbackInfo ci) {
         //实体死亡
         Entity sourceAttacker = damageSource.getAttacker();
         if (sourceAttacker != null) {
-            if (sourceAttacker instanceof PlayerEntity player){
+            if (sourceAttacker instanceof PlayerEntity player) {
                 //玩家攻击
                 //更新击杀计分板
-                killCountStatisticMap.put(player.getUuid(), killCountStatisticMap.get(player.getUuid()) + 1);
+                Integer killCount = killCountStatisticMap.get(player.getUuid());
+                if (killCount != null) {
+                    killCountStatisticMap.put(player.getUuid(), killCount + 1);
+                }
 
             }
         }

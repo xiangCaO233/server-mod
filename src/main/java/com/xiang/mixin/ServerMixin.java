@@ -109,6 +109,9 @@ public abstract class ServerMixin {
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
 
+        if (getTicks()%40==0)
+            System.gc();
+
         ObjectiveHandler objectiveHandler = AllObjective.autoLoops.peek();
 
 
@@ -185,7 +188,7 @@ public abstract class ServerMixin {
 
         BufferedWriter bw = null;
         try {
-            bw = new BufferedWriter(new FileWriter(configfile));
+            bw = new BufferedWriter(new FileWriter(configFile));
             bw.write(gson.toJson(config));
         } catch (IOException e) {
             throw new RuntimeException(e);

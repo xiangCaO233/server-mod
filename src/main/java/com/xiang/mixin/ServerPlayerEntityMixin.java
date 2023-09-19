@@ -38,7 +38,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onTick(CallbackInfo ci) {
-        onlineStatisticMap.put(getUuid(), getStatHandler().getStat(Stats.CUSTOM, Stats.PLAY_TIME) / 20);
+        Integer value = onlineStatisticMap.get(getUuid());
+        if (value != null) {
+            onlineStatisticMap.put(getUuid(),  getStatHandler().getStat(Stats.CUSTOM, Stats.PLAY_TIME) / 20);
+        }
     }
 
     /**
@@ -51,10 +54,12 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     private void playerDead(DamageSource damageSource, CallbackInfo callbackInfo) {
         //死亡注入
         //增加缓存中玩家死亡次数
-        deathsStatisticMap.put(this.getUuid(), deathsStatisticMap.get(this.getUuid()) + 1);
+        Integer value = deathsStatisticMap.get(this.getUuid());
+        if (value != null) {
+            deathsStatisticMap.put(this.getUuid(), value + 1);
+        }
         //玩家死亡消息
-
-        playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append("§b§n").append(getEntityName()).append(" §r§4趋势了"), false);
-        AlonaThread.sendGroupMessage("[IH]: " + getEntityName() + " 趋势了");
+        playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append("§b§n").append((value == null ? "[bot]" : "") + getEntityName()).append(" §r§4趋势了"), false);
+        AlonaThread.sendGroupMessage("[IH]: " + (value == null ? "[bot]" : "") + getEntityName() + " 趋势了");
     }
 }

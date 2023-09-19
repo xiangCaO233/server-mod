@@ -41,32 +41,42 @@ public abstract class PlayerManagerMixin {
      */
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
+
+
         String playerName = player.getEntityName();
-        if (!connection.getAddress().toString().contains("127.0.0.1")) {
+
+        boolean isBot = connection.getAddress().toString().contains("127.0.0.1");
+        if (!isBot) {
+            //如果不是假人
             onlinePlayers.add(player);
+            AllObjective.setPlayerObjective(player, playerUsedObjectiveMap.get(player.getUuid()));
+
+            playerNameMapping.put(player.getUuid(), playerName);
+
+            Integer level = levelMap.get(player.getUuid());
+            if (level != null) {
+                levelMap.put(player.getUuid(), player.experienceLevel);
+            }
+
+            checkStatistic(player);
+
+            Scoreboard scoreboard = player.getScoreboard();
+
+            usedPlayers.add(player);
+            //显示生命值
+            scoreboard.setObjectiveSlot(Scoreboard.LIST_DISPLAY_SLOT_ID, healthObj);
         }
 
+        broadcast(Text.of("§6玩家" + " §b§n" + (isBot ? "[bot]" : "") + playerName + "§r §6加入了游戏！"), false);
+        AlonaThread.sendGroupMessage("[IH]: " + (isBot ? "[bot]" : "") + playerName + " 加入了游戏");
 
-        AllObjective.setPlayerObjective(player, playerUsedObjectiveMap.get(player.getUuid()));
-
-        playerNameMapping.put(player.getUuid(), playerName);
-
-        levelMap.put(player.getUuid(), player.experienceLevel);
-        checkStatistic(player);
-
-        Scoreboard scoreboard = player.getScoreboard();
-
-        usedPlayers.add(player);
-        //显示生命值
-        scoreboard.setObjectiveSlot(Scoreboard.LIST_DISPLAY_SLOT_ID, healthObj);
-        broadcast(Text.of("§6玩家" + " §b§n" + playerName + "§r §6加入了游戏！"), false);
-        AlonaThread.sendGroupMessage("[IH]: " + playerName + " 加入了游戏");
     }
 
     @Inject(at = @At("TAIL"), method = "remove")
     private void onPlayerRemove(ServerPlayerEntity player, CallbackInfo ci) {
-        broadcast(Text.of("§6玩家" + " §b§n" + player.getEntityName() + "§r §6退出了游戏。"), false);
-        AlonaThread.sendGroupMessage("[IH]: " + player.getEntityName() + " 退出了游戏");
+        boolean isBot = !playerNameMapping.containsKey(player.getUuid());
+        broadcast(Text.of("§6玩家" + " §b§n" + (isBot ? "[bot]" : "") + player.getEntityName() + "§r §6退出了游戏。"), false);
+        AlonaThread.sendGroupMessage("[IH]: " + (isBot ? "[bot]" : "") + player.getEntityName() + " 退出了游戏");
 
         onlinePlayers.remove(player);
     }

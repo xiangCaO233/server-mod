@@ -26,7 +26,10 @@ public class BlockMixin {
     private void playerBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
         //更新玩家挖掘计分板
         //增加缓存中玩家挖掘次数
-        minedCountStatisticMap.put(player.getUuid(), minedCountStatisticMap.get(player.getUuid()) + 1);
+        Integer value =minedCountStatisticMap.get(player.getUuid());
+        if (value != null) {
+            minedCountStatisticMap.put(player.getUuid(), value + 1);
+        }
 
     }
 
@@ -37,7 +40,10 @@ public class BlockMixin {
         if (placer instanceof PlayerEntity player) {
             //更新玩家放置计分板
             //增加缓存中玩家放置次数
-            placedCountStatisticMap.put(player.getUuid(), placedCountStatisticMap.get(player.getUuid()) + 1);
+            Integer value = placedCountStatisticMap.get(player.getUuid());
+            if (value != null) {
+                placedCountStatisticMap.put(player.getUuid(), value + 1);
+            }
 
             /*ScoreboardObjective objective = player.getScoreboard().getObjective("placedCount");
             if (objective != null) {

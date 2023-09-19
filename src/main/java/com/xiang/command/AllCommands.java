@@ -86,9 +86,7 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
             );
             dispatcher.register(
                     literal("backup").executes(commandContext -> {
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
-                        long timeUsed = ServerUtility.createBackup();
-                        Objects.requireNonNull(Objects.requireNonNull(commandContext.getSource().getPlayer()).getServer()).getPlayerManager().broadcast(Text.of((Formatting.GREEN + "备份花费:" + Formatting.RESET + timeUsed + "ms")), false);
+                        ServerUtility.createBackup();
                         return 1;
                     })
             );

@@ -228,7 +228,8 @@ public class BetterObjective {
      * @return 格式化后的字符串
      */
     public static String format(String displayTitle, int width, int alignment) {
-
+        if (displayTitle==null)
+            return "null";
         // 去除颜色字符的原始字符串
         String original = displayTitle.replaceAll("§[0-9a-zA-Z]", "");
         // 加工显示标题，对齐方式 0左对齐 1右对齐 2居中

@@ -46,6 +46,7 @@ public abstract class PlayerMixin extends Entity {
 
     @Inject(at = @At("TAIL"), method = "tickMovement")
     private void afterPlayerMove(CallbackInfo ci) {
+
         if (previousX == 0 && previousY == 0 && previousZ == 0) {
             //初次加载
             updatePrePos();
@@ -54,6 +55,7 @@ public abstract class PlayerMixin extends Entity {
         //System.out.println(getWorld().getDimension());
         //计算移动距离
         double moveDistance = 0;
+
         if(lastDimension == getWorld().getDimension()){
             moveDistance = Math.sqrt(
                     Math.pow(getX() - previousX, 2) +
@@ -62,15 +64,24 @@ public abstract class PlayerMixin extends Entity {
             );
         }
         updatePrePos();
+
         //增加缓存中玩家移动距离
-        moveStatisticMap.put(getUuid(), moveStatisticMap.get(getUuid()) + moveDistance);
+        Double  moveStatistic = moveStatisticMap.get(getUuid());
+        if (moveStatistic != null) {
+            moveStatisticMap.put(getUuid(), moveStatistic + moveDistance);
+        }
+
+
     }
 
     @Inject(at = @At("TAIL"), method = "addExperience")
     private void onPlayerGetExp(int experience, CallbackInfo ci) {
         //更新计分板
         //增加缓存中玩家经验获取
-        expGetCountStatisticMap.put(getUuid(), expGetCountStatisticMap.get(getUuid()) + experience);
+        Integer expGetCountStatistic = expGetCountStatisticMap.get(getUuid());
+        if (expGetCountStatistic != null) {
+            expGetCountStatisticMap.put(getUuid(), expGetCountStatistic + 1);
+        }
         levelMap.put(getUuid(), experienceLevel);
 
     }
@@ -80,7 +91,10 @@ public abstract class PlayerMixin extends Entity {
 
         //玩家受攻击
         //增加缓存中玩家受到的伤害
-        takeDamageStatisticMap.put(getUuid(), takeDamageStatisticMap.get(getUuid()) + amount);
+        Float takeDamageStatistic = takeDamageStatisticMap.get(getUuid());
+        if (takeDamageStatistic != null) {
+            takeDamageStatisticMap.put(getUuid(), takeDamageStatistic + amount);
+        }
     }
 
 

@@ -1,11 +1,9 @@
 package com.xiang;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.alona.AlonaThread;
-import com.xiang.scoreborad.BetterObjective;
+import com.xiang.util.Info;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -15,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -29,7 +28,7 @@ public class ServerUtility implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     //	public static String lastMsptName;
-    public static File configfile;
+    public static File configFile;
     public static File backupsPath;
     public static File worldPath;
     public static JsonObject configJson;
@@ -70,8 +69,14 @@ public class ServerUtility implements ModInitializer {
      */
     public static HashMap<UUID, Float> takeDamageStatisticMap;
     public static HashMap<UUID, Integer> onlineStatisticMap;
-
+    /**
+     * 玩家的计分项表
+     */
     public static HashMap<UUID, String> playerUsedObjectiveMap;
+    /**
+     * 压缩文件尺寸
+     */
+    private static long zipFileSize = 0;
 
     @Override
     public void onInitialize() {
@@ -93,8 +98,8 @@ public class ServerUtility implements ModInitializer {
         onlineStatisticMap = new HashMap<>();
         playerUsedObjectiveMap = new HashMap<>();
 
-        configfile = new File("config/sudata.cfg");
-        File configPath = configfile.getParentFile();
+        configFile = new File("config/sudata.cfg");
+        File configPath = configFile.getParentFile();
         backupsPath = new File("backups");
         worldPath = new File("world");
 
@@ -103,10 +108,10 @@ public class ServerUtility implements ModInitializer {
             configPath.mkdir();
         }
         //检查配置文件
-        if (!configfile.exists()) {
+        if (!configFile.exists()) {
             try {
-                configfile.createNewFile();
-                BufferedWriter bw = new BufferedWriter(new FileWriter(configfile));
+                configFile.createNewFile();
+                BufferedWriter bw = new BufferedWriter(new FileWriter(configFile));
                 bw.write("{}");
                 bw.flush();
                 bw.close();
@@ -117,7 +122,7 @@ public class ServerUtility implements ModInitializer {
         //加载配置文件
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(configfile));
+            br = new BufferedReader(new FileReader(configFile));
             StringBuilder json = new StringBuilder();
             String str;
             while ((str = br.readLine()) != null) {
@@ -262,17 +267,18 @@ public class ServerUtility implements ModInitializer {
         backupTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
-                playerManager.broadcast(Text.of((Formatting.GREEN + "备份花费:" + Formatting.RESET + ServerUtility.createBackup() + "ms")), false);
+                ServerUtility.createBackup();
+
                 try {
                     Thread.sleep(60000 * 15);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
-        },0,60000*15);
+        }, 0, 60000 * 15);
     }
-    public static void stopBackupTimer(){
+
+    public static void stopBackupTimer() {
         backupTimer.cancel();
         backupTimer.purge();
         backupTimer = null;
@@ -306,7 +312,9 @@ public class ServerUtility implements ModInitializer {
         //updateScoreboardTimer.start();
     }*/
 
-    public static long createBackup() {
+    public static void createBackup() {
+        playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
+        zipFileSize = 0;
         File[] backups = Objects.requireNonNull(backupsPath.listFiles());
         if (backups.length >= 5) {
             //保留五个备份
@@ -332,11 +340,24 @@ public class ServerUtility implements ModInitializer {
             os.closeEntry();
             os.flush();
             os.close();
-            return (System.currentTimeMillis() - preTime);
+
+
+            //return (System.currentTimeMillis() - preTime);
+            playerManager.broadcast(
+                    Text.of((Formatting.GREEN + "备份完成! " +
+                            Formatting.GOLD + "用时: " + Formatting.WHITE + String.format("%.2f", (System.currentTimeMillis() - preTime) / 1000f) + "秒"
+                            + " " + Formatting.GOLD + "备份大小: " + Formatting.WHITE + ServerUtility.formatBytes(zipFileSize)
+                    )), false);
         } catch (IOException e) {
+            //return (System.currentTimeMillis() - preTime);
+            playerManager.broadcast(
+                    Text.of((Formatting.RED + "备份异常!"
+                    )), false);
             throw new RuntimeException(e);
         }
+
     }
+
 
     /**
      * 将路径放入Zip
@@ -360,12 +381,34 @@ public class ServerUtility implements ModInitializer {
         }
     }
 
+    /**
+     * 格式化字节单位
+     */
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024) {
+            return bytes + "B";
+        } else if (bytes < 1024 * 1024) {
+            return formatDecimal((double) bytes / 1024) + "KB";
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return formatDecimal((double) bytes / (1024 * 1024)) + "MB";
+        } else {
+            return formatDecimal((double) bytes / (1024 * 1024 * 1024)) + "GB";
+        }
+    }
+
+    private static String formatDecimal(double value) {
+        DecimalFormat df = new DecimalFormat("#.00");
+        return df.format(value);
+    }
+
     private static void writeData(File file, ZipOutputStream os) {
         try {
             FileInputStream fis = new FileInputStream(file);
             os.putNextEntry(new ZipEntry(file.getPath()));
-            os.write(fis.readAllBytes());
+            byte[] buffer = fis.readAllBytes();
+            os.write(buffer);
             os.closeEntry();
+            zipFileSize += buffer.length;
         } catch (IOException ignored) {
         }
     }

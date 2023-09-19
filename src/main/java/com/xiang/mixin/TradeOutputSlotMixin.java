@@ -19,10 +19,13 @@ import static com.xiang.ServerUtility.tradeCountStatisticMap;
  */
 @Mixin(TradeOutputSlot.class)
 public class TradeOutputSlotMixin {
-    @Inject(at=@At("TAIL"),method = "onTakeItem")
-    private void onPlayerTrade(PlayerEntity player, ItemStack stack, CallbackInfo ci){
+    @Inject(at = @At("TAIL"), method = "onTakeItem")
+    private void onPlayerTrade(PlayerEntity player, ItemStack stack, CallbackInfo ci) {
         //更新玩家交易
-        tradeCountStatisticMap.put(player.getUuid(),tradeCountStatisticMap.get(player.getUuid())+1);
+        Integer tradeCount = tradeCountStatisticMap.get(player.getUuid());
+        if (tradeCount != null) {
+            tradeCountStatisticMap.put(player.getUuid(), tradeCount + 1);
+        }
     }
 
 }
