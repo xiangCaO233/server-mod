@@ -1,5 +1,6 @@
 package com.xiang.mixin;
 
+import com.xiang.Trajectory;
 import com.xiang.alona.AlonaThread;
 import com.xiang.scoreborad.AllObjective;
 import com.xiang.scoreborad.BetterObjective;
@@ -15,7 +16,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.xiang.ServerUtility.*;
+import static com.xiang.navigate.Navigator.playerManager;
 
 /**
  * @author xiang2333
@@ -41,7 +47,8 @@ public abstract class PlayerManagerMixin {
      */
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-
+        if (!DEBUG)
+            playerTrajectoryMap.put(player.getUuid(), new Trajectory(player));
 
         String playerName = player.getEntityName();
 
@@ -74,6 +81,15 @@ public abstract class PlayerManagerMixin {
 
     @Inject(at = @At("TAIL"), method = "remove")
     private void onPlayerRemove(ServerPlayerEntity player, CallbackInfo ci) {
+        try {
+            Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
+            if (trajectory != null)
+                if (trajectory.getPlayer() == null)
+                    playerTrajectoryMap.get(player.getUuid()).save();
+        } catch (IOException e) {
+        }
+        playerTrajectoryMap.remove(player.getUuid());
+
         boolean isBot = !playerNameMapping.containsKey(player.getUuid());
         broadcast(Text.of("§6玩家" + " §b§n" + (isBot ? "[bot]" : "") + player.getEntityName() + "§r §6退出了游戏。"), false);
         AlonaThread.sendGroupMessage("[IH]: " + (isBot ? "[bot]" : "") + player.getEntityName() + " 退出了游戏");

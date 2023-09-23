@@ -1,39 +1,39 @@
 package com.xiang.command;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.xiang.ServerUtility;
+import com.xiang.Trajectory;
 import com.xiang.navigate.Navigator;
-import com.xiang.navigate.PlayerNavDestination;
 import com.xiang.scoreborad.AllObjective;
-import com.xiang.scoreborad.BetterObjective;
 import com.xiang.util.ServerUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextVisitFactory;
 import net.minecraft.util.Formatting;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
-import static com.mojang.brigadier.arguments.StringArgumentType.StringType.GREEDY_PHRASE;
-import static com.xiang.ServerUtility.*;
 import static com.xiang.alona.AlonaThread.sendGroupMessage;
 import static com.xiang.navigate.Navigator.playerManager;
+import static com.xiang.ServerUtility.*;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -91,6 +91,66 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                         return 1;
                     })
             );
+            dispatcher.register(
+                    literal("trajectory").
+                            then(argument("需要播放的轨迹文件  [时间:秒]", word()).suggests(new TrajectoryCommandSugp()).executes((commandContext -> {
+                                if (!DEBUG)
+                                    return 0;
+                                ServerPlayerEntity player = commandContext.getSource().getPlayer();
+                                String[] args = commandContext.getInput().split(" ");
+                                Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
+
+                                if (trajectory == null) {
+                                    //没有播放的轨迹
+                                    player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.AMBIENT, 0.2f, 1);
+                                    //指定计分板
+                                    try {
+                                        FileInputStream inputStream = new FileInputStream("./trajectory/" + args[1]);
+                                        Trajectory trajectory1 = new Trajectory(player, inputStream);
+                                        playerTrajectoryMap.put(player.getUuid(), trajectory1);
+                                        playerManager.broadcast(
+                                                Text.of(" §6开始播放 :" + "./trajectory/" + args[1]), false
+                                        );
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+
+                                    //AllObjective.setPlayerObjective(player, args[1]);
+                                } else {
+                                    //有播放的轨迹
+                                    if (args[1].equals("pause")) {
+                                        trajectory.setPlayStat(false);
+                                        playerManager.broadcast(
+                                                Text.of(" §6暂停播放"), false
+                                        );
+                                    } else if (args[1].equals("play")) {
+                                        trajectory.setPlayStat(true);
+                                        playerManager.broadcast(
+                                                Text.of(" §6继续播放"), false
+                                        );
+                                    } else if (args[1].equals("stop")) {
+                                        playerTrajectoryMap.remove(player.getUuid());
+                                        playerManager.broadcast(
+                                                Text.of(" §6停止播放"), false
+                                        );
+                                    } else {
+                                        try {
+                                            int time = Integer.valueOf(args[1]);
+                                            trajectory.setPlayPos(time * 20);
+                                            playerManager.broadcast(
+                                                    Text.of(" §6时间跳转到: " + time + "s"), false
+                                            );
+                                        } catch (NumberFormatException nfe) {
+
+                                        }
+                                    }
+
+                                }
+
+
+                                return 1;
+                            })))
+            );
         });
     }
 
@@ -135,6 +195,26 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
             for (String key : AllObjective.getObjectiveNames()) {
                 suggestionsBuilder.suggest(key);
             }
+            return suggestionsBuilder.buildFuture();
+        }
+    }
+
+    static class TrajectoryCommandSugp implements SuggestionProvider<ServerCommandSource> {
+        @Override
+        public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
+            ServerPlayerEntity player = commandContext.getSource().getPlayer();
+            Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
+            if (trajectory == null) {
+                try {
+                    Files.list(Paths.get("./trajectory/")).forEach(path -> suggestionsBuilder.suggest(path.getFileName().toString()));
+                } catch (IOException ignored) {
+                }
+            } else {
+                suggestionsBuilder.suggest("pause");
+                suggestionsBuilder.suggest("play");
+                suggestionsBuilder.suggest("stop");
+            }
+
             return suggestionsBuilder.buildFuture();
         }
     }

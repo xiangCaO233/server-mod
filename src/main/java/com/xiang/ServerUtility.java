@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.alona.AlonaThread;
-import com.xiang.util.Info;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -15,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -73,6 +74,9 @@ public class ServerUtility implements ModInitializer {
      * 玩家的计分项表
      */
     public static HashMap<UUID, String> playerUsedObjectiveMap;
+
+
+    public static HashMap<UUID, Trajectory> playerTrajectoryMap;
     /**
      * 压缩文件尺寸
      */
@@ -97,6 +101,7 @@ public class ServerUtility implements ModInitializer {
         takeDamageStatisticMap = new HashMap<>();
         onlineStatisticMap = new HashMap<>();
         playerUsedObjectiveMap = new HashMap<>();
+        playerTrajectoryMap = new HashMap<>();
 
         configFile = new File("config/sudata.cfg");
         File configPath = configFile.getParentFile();
@@ -355,6 +360,12 @@ public class ServerUtility implements ModInitializer {
         }
         saveScoreData();
         System.gc();
+        for (Trajectory trajectory : playerTrajectoryMap.values()) {
+            try {
+                trajectory.save();
+            } catch (IOException ignored) {
+            }
+        }
     }
 
 
@@ -411,7 +422,8 @@ public class ServerUtility implements ModInitializer {
         } catch (IOException ignored) {
         }
     }
-    public static void saveScoreData(){
+
+    public static void saveScoreData() {
         Gson gson = new GsonBuilder().setLenient().serializeSpecialFloatingPointValues().create();
         JsonParser jsonParser = new JsonParser();
         JsonObject deathsJson = jsonParser.parse(gson.toJson(deathsStatisticMap)).getAsJsonObject();
@@ -466,5 +478,14 @@ public class ServerUtility implements ModInitializer {
     public interface SetAutoCallback{
         void server_mod$updateTimer();
     }*/
+    public static final boolean DEBUG ;
+    static {
+        try {
+            DEBUG=Path.of("./").toRealPath().toString().contains("server-mod");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        //DEBUG=false;
+    }
 
 }

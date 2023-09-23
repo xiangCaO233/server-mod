@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.xiang.Trajectory;
 import com.xiang.alona.AlonaThread;
 import com.xiang.navigate.Navigator;
 import com.xiang.scoreborad.AllObjective;
@@ -134,6 +135,11 @@ public abstract class ServerMixin {
             AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
         }
 
+
+        for (Trajectory trajectory : playerTrajectoryMap.values()) {
+            trajectory.serverTickHandler();
+        }
+
     }
 
     /**
@@ -148,7 +154,7 @@ public abstract class ServerMixin {
         stopNavThread = true;
         AlonaThread.sendGroupMessage("[IH]: 服务器已关闭。");
         AlonaThread.shutdown = true;
-        new Thread(()->{
+        new Thread(() -> {
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
