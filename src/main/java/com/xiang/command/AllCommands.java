@@ -1,5 +1,7 @@
 package com.xiang.command;
 
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -27,8 +29,10 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import static com.mojang.brigadier.arguments.StringArgumentType.word;
+import static com.mojang.brigadier.arguments.StringArgumentType.*;
+import static com.mojang.brigadier.arguments.StringArgumentType.StringType.GREEDY_PHRASE;
 import static com.xiang.ServerUtility.*;
+import static com.xiang.alona.AlonaThread.sendGroupMessage;
 import static com.xiang.navigate.Navigator.playerManager;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -41,27 +45,24 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             //注册指令
-            /*dispatcher.register(
-                    literal("nav").executes((context) -> {
+            dispatcher.register(
+                    literal("chat").executes((context) -> {
                                 context.getSource().sendMessage(
-                                        Text.literal("请指定导航目标")
+                                        Text.literal(Formatting.GOLD + "请输入聊天消息")
                                 );
                                 return 0;
                             }).
-                            then(argument("playerName/[x,z]/[x,y,z]", word()).suggests(new NavCommandSugp()).executes((commandContext -> {
-                                        //commandContext.getSource().sendMessage(Text.literal("导航到:" + commandContext.getNodes().get(1)));
-                                        String[] args = commandContext.getInput().split(" ");
-                                        Navigator.addNavDes(
-                                                new PlayerNavDestination(
-                                                        Objects.requireNonNull(commandContext.getSource().getPlayer()).getEntityName(),
-                                                        args[1]
-                                                ),
-                                                this
+                            then(argument("chatMessage", greedyString()).suggests(new ChatCommandSugp()).executes((context -> {
+                                        String[] args = context.getInput().split(" ");
+                                        String playerName = Objects.requireNonNull(context.getSource().getPlayer()).getEntityName();
+                                        playerManager.broadcast(
+                                                Text.of(" §b§n" + playerName + "§r  : " + args[1]), false
                                         );
+                                        sendGroupMessage("[IH] [" + playerName + "]: " + args[1]);
                                         return 1;
                                     }))
                             )
-            );*/
+            );
             dispatcher.register(
                     literal("setscoreboard").executes((context) -> {
                                 if (context.getSource().getPlayer() != null)
@@ -109,14 +110,19 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
         }
     }
 
-    static class NavCommandSugp implements SuggestionProvider<ServerCommandSource> {
+    static class ChatCommandSugp implements SuggestionProvider<ServerCommandSource> {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
-            suggestionsBuilder.suggest("stop");
+            suggestionsBuilder.suggest("蚌埠住了");
+            suggestionsBuilder.suggest("好好好");
+            suggestionsBuilder.suggest("对对对");
+            suggestionsBuilder.suggest("help");
+            suggestionsBuilder.suggest("寄");
             //导航指令补全内容
             for (PlayerEntity player : playerManager.getPlayerList()) {
                 suggestionsBuilder.suggest(player.getEntityName());
             }
+
             return suggestionsBuilder.buildFuture();
         }
     }

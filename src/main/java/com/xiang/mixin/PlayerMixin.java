@@ -14,6 +14,8 @@ import net.minecraft.text.TextContent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
+import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,6 +23,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static com.xiang.ServerUtility.*;
 import static com.xiang.navigate.Navigator.playerManager;
@@ -31,6 +36,14 @@ import static com.xiang.navigate.Navigator.playerManager;
 @Mixin(PlayerEntity.class)
 public abstract class PlayerMixin extends Entity {
     @Shadow public int experienceLevel;
+    @Shadow @Final private static Logger LOGGER;
+
+    @Shadow public abstract String getEntityName();
+
+    @Shadow public abstract Scoreboard getScoreboard();
+
+    @Shadow public abstract void sendMessage(Text message, boolean overlay);
+
     @Unique
     double previousX;
     @Unique
@@ -71,6 +84,13 @@ public abstract class PlayerMixin extends Entity {
             moveStatisticMap.put(getUuid(), moveStatistic + moveDistance);
         }
 
+/*        double moveSpeed = moveDistance * 20;
+        if(moveSpeed >= 30){
+            LOGGER.info(getEntityName() + "移动速度异常");
+        }
+        sendMessage(
+                Text.of("速度:" + new BigDecimal(moveSpeed).setScale(2, RoundingMode.HALF_UP)+"m/s")
+        );*/
 
     }
 

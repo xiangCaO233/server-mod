@@ -90,8 +90,8 @@ public abstract class ServerMixin {
 
         LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
-        LOGGER.info("指令设置不显示死亡消息");
-        getGameRules().get(GameRules.SHOW_DEATH_MESSAGES).set(false, playerManager.getServer());
+        LOGGER.info("指令设置超过1/3睡觉跳过黑夜");
+        getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(34, playerManager.getServer());
         ServerUtil.executeCommand("carpet setDefault commandPlayer true");
         ServerUtil.executeCommand("carpet setDefault flippinCactus true");
         ServerUtil.executeCommand("carpet setDefault fogOff true");
@@ -108,9 +108,9 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void onServerTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-
+/*
         if (getTicks()%40==0)
-            System.gc();
+            System.gc();*/
 
         ObjectiveHandler objectiveHandler = AllObjective.autoLoops.peek();
 
@@ -134,20 +134,6 @@ public abstract class ServerMixin {
             AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
         }
 
-        /*
-
-        if (playerManager.getPlayerList().size() > 0) {
-            betterObjective.setScore(3, "你好 NMSL hhh " + Info.getWorldTime() + " !", BetterObjective.LEFT);
-            betterObjective.setScore(2, "你好 NMSL hhh " + Info.getRunTime() + " !", BetterObjective.LEFT);
-            betterObjective.setScore(1, "你好 NMSL hhh " + Info.timeUnitConversion(600) + " !", BetterObjective.LEFT);
-            betterObjective.setScore(1, "你好 NMSL hhh " + Info.formatPercentage(0.1) + " !", BetterObjective.LEFT);
-            betterObjective.setScore(6, "你好 NMSL hhh " + Info.formatPercentage(0.4) + " !", BetterObjective.LEFT);
-            betterObjective.setScore(7, "你好 NMSL hhh " + Info.formatPercentage(0.6) + " !", BetterObjective.LEFT);
-            betterObjective.setScore(8, "你好 NMSL hhh " + Info.formatPercentage(0.9) + " !", BetterObjective.LEFT);
-            betterObjective.setScore(9, "你好 NMSL hhh " + Info.formatPercentage(1.0) + " !", BetterObjective.LEFT);
-
-        }*/
-
     }
 
     /**
@@ -156,62 +142,20 @@ public abstract class ServerMixin {
 
     @Inject(at = @At("TAIL"), method = "stop")
     private void onServerStop(boolean waitForShutdown, CallbackInfo ci) {
-
-        Gson gson = new GsonBuilder().setLenient().serializeSpecialFloatingPointValues().create();
-        JsonParser jsonParser = new JsonParser();
-        JsonObject deathsJson = jsonParser.parse(gson.toJson(deathsStatisticMap)).getAsJsonObject();
-        JsonObject minedCountJson = jsonParser.parse(gson.toJson(minedCountStatisticMap)).getAsJsonObject();
-        JsonObject placedCountJson = jsonParser.parse(gson.toJson(placedCountStatisticMap)).getAsJsonObject();
-        JsonObject tradeCountJson = jsonParser.parse(gson.toJson(tradeCountStatisticMap)).getAsJsonObject();
-        JsonObject moveJson = jsonParser.parse(gson.toJson(moveStatisticMap)).getAsJsonObject();
-        JsonObject expGetCountJson = jsonParser.parse(gson.toJson(expGetCountStatisticMap)).getAsJsonObject();
-        JsonObject levelJson = jsonParser.parse(gson.toJson(levelMap)).getAsJsonObject();
-        JsonObject killCountJson = jsonParser.parse(gson.toJson(killCountStatisticMap)).getAsJsonObject();
-        JsonObject damageJson = jsonParser.parse(gson.toJson(damageStatisticMap)).getAsJsonObject();
-        JsonObject takeDamageJson = jsonParser.parse(gson.toJson(takeDamageStatisticMap)).getAsJsonObject();
-        JsonObject onlineJson = jsonParser.parse(gson.toJson(onlineStatisticMap)).getAsJsonObject();
-        JsonObject playerNameJson = jsonParser.parse(gson.toJson(playerNameMapping)).getAsJsonObject();
-
-        JsonObject config = new JsonObject();
-        config.add("deaths", deathsJson);
-        config.add("minedCount", minedCountJson);
-        config.add("placedCount", placedCountJson);
-        config.add("tradeCount", tradeCountJson);
-        config.add("move", moveJson);
-        config.add("expGetCount", expGetCountJson);
-        config.add("level", levelJson);
-        config.add("killCount", killCountJson);
-        config.add("damage", damageJson);
-        config.add("takeDamage", takeDamageJson);
-        config.add("online", onlineJson);
-        config.add("players", playerNameJson);
-
-        BufferedWriter bw = null;
-        try {
-            bw = new BufferedWriter(new FileWriter(configFile));
-            bw.write(gson.toJson(config));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.flush();
-                    bw.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        createBackup();
-
+        saveScoreData();
         //关闭计时器
         stopBackupTimer();
         stopNavThread = true;
         AlonaThread.sendGroupMessage("[IH]: 服务器已关闭。");
         AlonaThread.shutdown = true;
-
+        new Thread(()->{
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.exit(0);
+        }).start();
     }
-
 
 }

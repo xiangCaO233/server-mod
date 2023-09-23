@@ -1,5 +1,7 @@
 package com.xiang;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.alona.AlonaThread;
@@ -37,8 +39,6 @@ public class ServerUtility implements ModInitializer {
     public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
     public static Timer backupTimer;
-    //备份停止标记
-    public static boolean stopBackupT;
     //生命值积分项
     public static ScoreboardObjective healthObj;
 
@@ -130,7 +130,6 @@ public class ServerUtility implements ModInitializer {
             }
             configJson = new JsonParser().parse(json.toString()).getAsJsonObject();
 
-
             JsonObject deathJson = configJson.getAsJsonObject("deaths");
             JsonObject minedCountJson = configJson.getAsJsonObject("minedCount");
             JsonObject placedCountJson = configJson.getAsJsonObject("placedCount");
@@ -155,7 +154,7 @@ public class ServerUtility implements ModInitializer {
             }
             if (placedCountJson != null) {
                 for (String uuid : placedCountJson.keySet()) {
-                    minedCountStatisticMap.put(UUID.fromString(uuid), placedCountJson.get(uuid).getAsInt());
+                    placedCountStatisticMap.put(UUID.fromString(uuid), placedCountJson.get(uuid).getAsInt());
                 }
             }
             if (tradeCountJson != null) {
@@ -281,7 +280,6 @@ public class ServerUtility implements ModInitializer {
     public static void stopBackupTimer() {
         backupTimer.cancel();
         backupTimer.purge();
-        backupTimer = null;
     }
 
 /*	public static void startScoreBoardTimer() {
@@ -355,7 +353,8 @@ public class ServerUtility implements ModInitializer {
                     )), false);
             throw new RuntimeException(e);
         }
-
+        saveScoreData();
+        System.gc();
     }
 
 
@@ -410,6 +409,53 @@ public class ServerUtility implements ModInitializer {
             os.closeEntry();
             zipFileSize += buffer.length;
         } catch (IOException ignored) {
+        }
+    }
+    public static void saveScoreData(){
+        Gson gson = new GsonBuilder().setLenient().serializeSpecialFloatingPointValues().create();
+        JsonParser jsonParser = new JsonParser();
+        JsonObject deathsJson = jsonParser.parse(gson.toJson(deathsStatisticMap)).getAsJsonObject();
+        JsonObject minedCountJson = jsonParser.parse(gson.toJson(minedCountStatisticMap)).getAsJsonObject();
+        JsonObject placedCountJson = jsonParser.parse(gson.toJson(placedCountStatisticMap)).getAsJsonObject();
+        JsonObject tradeCountJson = jsonParser.parse(gson.toJson(tradeCountStatisticMap)).getAsJsonObject();
+        JsonObject moveJson = jsonParser.parse(gson.toJson(moveStatisticMap)).getAsJsonObject();
+        JsonObject expGetCountJson = jsonParser.parse(gson.toJson(expGetCountStatisticMap)).getAsJsonObject();
+        JsonObject levelJson = jsonParser.parse(gson.toJson(levelMap)).getAsJsonObject();
+        JsonObject killCountJson = jsonParser.parse(gson.toJson(killCountStatisticMap)).getAsJsonObject();
+        JsonObject damageJson = jsonParser.parse(gson.toJson(damageStatisticMap)).getAsJsonObject();
+        JsonObject takeDamageJson = jsonParser.parse(gson.toJson(takeDamageStatisticMap)).getAsJsonObject();
+        JsonObject onlineJson = jsonParser.parse(gson.toJson(onlineStatisticMap)).getAsJsonObject();
+        JsonObject playerNameJson = jsonParser.parse(gson.toJson(playerNameMapping)).getAsJsonObject();
+
+        JsonObject config = new JsonObject();
+        config.add("deaths", deathsJson);
+        config.add("minedCount", minedCountJson);
+        config.add("placedCount", placedCountJson);
+        config.add("tradeCount", tradeCountJson);
+        config.add("move", moveJson);
+        config.add("expGetCount", expGetCountJson);
+        config.add("level", levelJson);
+        config.add("killCount", killCountJson);
+        config.add("damage", damageJson);
+        config.add("takeDamage", takeDamageJson);
+        config.add("online", onlineJson);
+        config.add("players", playerNameJson);
+
+        BufferedWriter bw = null;
+        try {
+            bw = new BufferedWriter(new FileWriter(configFile));
+            bw.write(gson.toJson(config));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.flush();
+                    bw.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 

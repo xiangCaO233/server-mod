@@ -32,6 +32,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Shadow
     public abstract ServerStatHandler getStatHandler();
 
+    @Shadow public abstract void sendMessage(Text message, boolean overlay);
+
     public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
         super(world, pos, yaw, gameProfile);
     }
@@ -59,7 +61,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
             deathsStatisticMap.put(this.getUuid(), value + 1);
         }
         //玩家死亡消息
-        playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append("§b§n").append((value == null ? "[bot]" : "") + getEntityName()).append(" §r§4趋势了"), false);
+        sendMessage(Text.of("§c[死亡坐标]"+"§a->"+"§b(x:"+ (int)getX() + ",y:"+(int)getY()+",z:"+(int)getZ()+")"));
+        //playerManager.getServer().getPlayerManager().broadcast(MutableText.of(TextContent.EMPTY).append("§b§n").append((value == null ? "[bot]" : "") + getEntityName()).append(" §r§4趋势了"), false);
         AlonaThread.sendGroupMessage("[IH]: " + (value == null ? "[bot]" : "") + getEntityName() + " 趋势了");
     }
 }
