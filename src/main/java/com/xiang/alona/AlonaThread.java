@@ -113,27 +113,28 @@ public class AlonaThread extends Thread {
         ws.connect();
 
 
-        try {
-            while (!shutdown) {
+        while (!shutdown) {
+            try {
                 Thread.sleep(5000);
-                isConnect = ws.isOpen();
-                try {
-                    if (!isConnect) {
-                        System.out.println("连接寄了，自动重连");
-                        try {
-                            ws.reconnect();
-                        } catch (Exception e) {
-                            System.out.println("重连失败");
-                        }
-                    }
-                }catch (Exception ignored){
-
-                }
+            } catch (InterruptedException e) {
+                //throw new RuntimeException(e);
             }
-            ws.close();
-        } catch (Exception e) {
-           e.printStackTrace();
+            isConnect = ws.isOpen();
+            try {
+                if (!isConnect) {
+                    System.out.println("连接寄了，自动重连");
+                    try {
+                        ws.reconnect();
+                    } catch (Exception e) {
+                        System.out.println("重连失败");
+                    }
+                }
+            } catch (Exception ignored) {
+
+            }
         }
+        ws.close();
+
 
     }
 }

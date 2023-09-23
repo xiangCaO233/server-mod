@@ -44,6 +44,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         if (value != null) {
             onlineStatisticMap.put(getUuid(),  getStatHandler().getStat(Stats.CUSTOM, Stats.PLAY_TIME) / 20);
         }
+        //getPitch()
     }
 
     /**
