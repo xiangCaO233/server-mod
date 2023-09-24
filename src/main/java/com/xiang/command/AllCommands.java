@@ -91,66 +91,67 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
                         return 1;
                     })
             );
-            dispatcher.register(
-                    literal("trajectory").
-                            then(argument("需要播放的轨迹文件  [时间:秒]", word()).suggests(new TrajectoryCommandSugp()).executes((commandContext -> {
-                                if (!DEBUG)
-                                    return 0;
-                                ServerPlayerEntity player = commandContext.getSource().getPlayer();
-                                String[] args = commandContext.getInput().split(" ");
-                                Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
+            if (DEBUG) {
+                dispatcher.register(
+                        literal("trajectory").
+                                then(argument("需要播放的轨迹文件  [时间:秒]", word()).suggests(new TrajectoryCommandSugp()).executes((commandContext -> {
+                                    ServerPlayerEntity player = commandContext.getSource().getPlayer();
+                                    String[] args = commandContext.getInput().split(" ");
+                                    Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
 
-                                if (trajectory == null) {
-                                    //没有播放的轨迹
-                                    player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.AMBIENT, 0.2f, 1);
-                                    //指定计分板
-                                    try {
-                                        FileInputStream inputStream = new FileInputStream("./trajectory/" + args[1]);
-                                        Trajectory trajectory1 = new Trajectory(player, inputStream);
-                                        playerTrajectoryMap.put(player.getUuid(), trajectory1);
-                                        playerManager.broadcast(
-                                                Text.of(" §6开始播放 :" + "./trajectory/" + args[1]), false
-                                        );
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
-                                    }
-
-                                    //AllObjective.setPlayerObjective(player, args[1]);
-                                } else {
-                                    //有播放的轨迹
-                                    if (args[1].equals("pause")) {
-                                        trajectory.setPlayStat(false);
-                                        playerManager.broadcast(
-                                                Text.of(" §6暂停播放"), false
-                                        );
-                                    } else if (args[1].equals("play")) {
-                                        trajectory.setPlayStat(true);
-                                        playerManager.broadcast(
-                                                Text.of(" §6继续播放"), false
-                                        );
-                                    } else if (args[1].equals("stop")) {
-                                        playerTrajectoryMap.remove(player.getUuid());
-                                        playerManager.broadcast(
-                                                Text.of(" §6停止播放"), false
-                                        );
-                                    } else {
+                                    if (trajectory == null) {
+                                        //没有播放的轨迹
+                                        player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.AMBIENT, 0.2f, 1);
+                                        //指定计分板
                                         try {
-                                            int time = Integer.valueOf(args[1]);
-                                            trajectory.setPlayPos(time * 20);
+                                            FileInputStream inputStream = new FileInputStream("./trajectory/" + args[1]);
+                                            Trajectory trajectory1 = new Trajectory(player, inputStream);
+                                            playerTrajectoryMap.put(player.getUuid(), trajectory1);
                                             playerManager.broadcast(
-                                                    Text.of(" §6时间跳转到: " + time + "s"), false
+                                                    Text.of(" §6开始播放 :" + "./trajectory/" + args[1]), false
                                             );
-                                        } catch (NumberFormatException nfe) {
-
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
                                         }
+
+                                        //AllObjective.setPlayerObjective(player, args[1]);
+                                    } else {
+                                        //有播放的轨迹
+                                        if (args[1].equals("pause")) {
+                                            trajectory.setPlayStat(false);
+                                            playerManager.broadcast(
+                                                    Text.of(" §6暂停播放"), false
+                                            );
+                                        } else if (args[1].equals("play")) {
+                                            trajectory.setPlayStat(true);
+                                            playerManager.broadcast(
+                                                    Text.of(" §6继续播放"), false
+                                            );
+                                        } else if (args[1].equals("stop")) {
+                                            playerTrajectoryMap.remove(player.getUuid());
+                                            playerManager.broadcast(
+                                                    Text.of(" §6停止播放"), false
+                                            );
+                                        } else {
+                                            try {
+                                                int time = Integer.valueOf(args[1]);
+                                                trajectory.setPlayPos(time * 20);
+                                                playerManager.broadcast(
+                                                        Text.of(" §6时间跳转到: " + time + "s"), false
+                                                );
+                                            } catch (NumberFormatException nfe) {
+
+                                            }
+                                        }
+
                                     }
 
-                                }
 
+                                    return 1;
+                                })))
+                );
+            }
 
-                                return 1;
-                            })))
-            );
         });
     }
 
@@ -202,19 +203,21 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
     static class TrajectoryCommandSugp implements SuggestionProvider<ServerCommandSource> {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> commandContext, SuggestionsBuilder suggestionsBuilder) {
-            ServerPlayerEntity player = commandContext.getSource().getPlayer();
-            Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
-            if (trajectory == null) {
-                try {
-                    Files.list(Paths.get("./trajectory/")).forEach(path -> suggestionsBuilder.suggest(path.getFileName().toString()));
-                } catch (IOException ignored) {
-                }
-            } else {
-                suggestionsBuilder.suggest("pause");
-                suggestionsBuilder.suggest("play");
-                suggestionsBuilder.suggest("stop");
-            }
+            if (DEBUG) {
+                ServerPlayerEntity player = commandContext.getSource().getPlayer();
+                Trajectory trajectory = playerTrajectoryMap.get(player.getUuid());
 
+                if (trajectory == null) {
+                    try {
+                        Files.list(Paths.get("./trajectory/")).forEach(path -> suggestionsBuilder.suggest(path.getFileName().toString()));
+                    } catch (IOException ignored) {
+                    }
+                } else {
+                    suggestionsBuilder.suggest("pause");
+                    suggestionsBuilder.suggest("play");
+                    suggestionsBuilder.suggest("stop");
+                }
+            }
             return suggestionsBuilder.buildFuture();
         }
     }

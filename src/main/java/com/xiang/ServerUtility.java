@@ -363,7 +363,9 @@ public class ServerUtility implements ModInitializer {
         for (Trajectory trajectory : playerTrajectoryMap.values()) {
             try {
                 trajectory.save();
-            } catch (IOException ignored) {
+            } catch (Exception e) {
+                System.out.println("保存轨迹文件遇到问题");
+                e.printStackTrace();
             }
         }
     }
@@ -478,10 +480,11 @@ public class ServerUtility implements ModInitializer {
     public interface SetAutoCallback{
         void server_mod$updateTimer();
     }*/
-    public static final boolean DEBUG ;
+    public static final boolean DEBUG;
+
     static {
         try {
-            DEBUG=Path.of("./").toRealPath().toString().contains("server-mod");
+            DEBUG = Path.of("./").toRealPath().toString().contains("server-mod");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

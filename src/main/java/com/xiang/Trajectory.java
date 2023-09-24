@@ -13,10 +13,9 @@ import net.minecraft.util.math.Vec3d;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import static com.xiang.navigate.Navigator.playerManager;
 
@@ -70,15 +69,20 @@ public class Trajectory {
         this.owner = null;
         this.player = player;
         recordTime = System.currentTimeMillis();
-        ByteBuffer byteBuffer = ByteBuffer.wrap(inputStream.readAllBytes());
-        int tickLength = byteBuffer.getInt();
-        recordTime = byteBuffer.getLong();
-        for (int i = 0; i < tickLength; i++) {
-            posXList.add(byteBuffer.getFloat());
-            posYList.add(byteBuffer.getFloat());
-            posZList.add(byteBuffer.getFloat());
-            pitchList.add(byteBuffer.getFloat());
-            yawList.add(byteBuffer.getFloat());
+        ByteBuffer byteBuffer;
+        try (GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream)) {
+            byteBuffer = ByteBuffer.wrap(gzipInputStream.readAllBytes());
+        }
+        synchronized (this) {
+            int tickLength = byteBuffer.getInt();
+            recordTime = byteBuffer.getLong();
+            for (int i = 0; i < tickLength; i++) {
+                posXList.add(byteBuffer.getFloat());
+                posYList.add(byteBuffer.getFloat());
+                posZList.add(byteBuffer.getFloat());
+                pitchList.add(byteBuffer.getFloat());
+                yawList.add(byteBuffer.getFloat());
+            }
         }
     }
 
@@ -86,28 +90,58 @@ public class Trajectory {
      * 保存现有的数据 重新记录
      */
     public void save() throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(20 * posXList.size() + 8 + 4);
-        byteBuffer.putInt(posXList.size());
-        byteBuffer.putLong(recordTime);
-        for (int i = 0; i < posXList.size(); i++) {
-            byteBuffer.putFloat(posXList.get(i));
-            byteBuffer.putFloat(posYList.get(i));
-            byteBuffer.putFloat(posZList.get(i));
-            byteBuffer.putFloat(pitchList.get(i));
-            byteBuffer.putFloat(yawList.get(i));
+        List<Float> tempPosXList;
+        List<Float> tempPosYList;
+        List<Float> tempPosZList;
+        List<Float> tempPitchList;
+        List<Float> tempYawList;
+        long time = getTimeLength();
+        recordTime = System.currentTimeMillis();
+        synchronized (this) {
+            tempPosXList = (List<Float>) posXList.clone();
+            tempPosYList = (List<Float>) posYList.clone();
+            tempPosZList = (List<Float>) posZList.clone();
+            tempPitchList = (List<Float>) pitchList.clone();
+            tempYawList = (List<Float>) yawList.clone();
+
+            posXList.clear();
+            posYList.clear();
+            posZList.clear();
+            pitchList.clear();
+            yawList.clear();
         }
-        System.out.println(posXList.size());
-        String recordTimeStr = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date(recordTime));
-        FileOutputStream fileOutputStream = new FileOutputStream("./trajectory/" + owner.getEntityName() + "_" + recordTimeStr + "_" + getTimeLength() + "s.dat");
+
+
+        int listSize = tempPosXList.size();
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(20 * listSize + 8 + 4);
+        byteBuffer.putInt(listSize);
+        byteBuffer.putLong(recordTime);
+        for (int i = 0; i < listSize; i++) {
+            byteBuffer.putFloat(tempPosXList.get(i));
+            byteBuffer.putFloat(tempPosYList.get(i));
+            byteBuffer.putFloat(tempPosZList.get(i));
+            byteBuffer.putFloat(tempPitchList.get(i));
+            byteBuffer.putFloat(tempYawList.get(i));
+        }
+
         byteBuffer.flip();
-        fileOutputStream.getChannel().write(byteBuffer);
+
+        // 创建一个ByteArrayOutputStream来存储压缩后的数据
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream);
+        // 将ByteBuffer的内容写入到GZIPOutputStream中
+        while (byteBuffer.hasRemaining()) {
+            gzipOutputStream.write(byteBuffer.get());
+        }
+        gzipOutputStream.close(); // 关闭压缩流
+
+        // 将压缩后的数据写入文件
+        String recordTimeStr = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date(recordTime));
+        String filePath = "./trajectory/" + owner.getEntityName() + "_" + recordTimeStr + "_" + time + "s.dat";
+        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+        fileOutputStream.write(byteArrayOutputStream.toByteArray());
         fileOutputStream.close();
 
-        posXList.clear();
-        posYList.clear();
-        posZList.clear();
-        pitchList.clear();
-        yawList.clear();
     }
 
     /**
@@ -129,55 +163,34 @@ public class Trajectory {
 
     public void serverTickHandler() {
         if (player != null) {
-            /*player.setPos(posXList.get(index), posYList.get(index), posZList.get(index));
-            player.setPitch(pitchList.get(index));
-            player.setYaw(yawList.get(index));*/
+            synchronized (this) {
+                playerManager.broadcast(Text.of(Formatting.GOLD + "播放时间：" + (index / 20) + "s - " + (posXList.size() / 20) + "s " + (isPlay ? "播放中" : "暂停")), true);
 
-            /*ServerPlayNetworking.send(player, new PlayerMoveC2SPacket.Full(
-                    posXList.get(index)
-                    , posYList.get(index)
-                    , posZList.get(index)
-                    , yawList.get(index)
-                    , pitchList.get(index)
-                    , player.isOnGround()
-            ));
-        }*/
-            /*player.networkHandler.sendPacket(
-                    new PlayerMoveC2SPacket.LookAndOnGround(posXList.get(index), posYList.get(index), false)
-            );
-
-            player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(
-                    posXList.get(index)
-                    , posYList.get(index)
-                    , posZList.get(index)
-                    , false
-            ));*/
-            //player.p
-
-            playerManager.broadcast(Text.of(Formatting.GOLD + "播放时间：" + (index / 20) + "s - " + (posXList.size() / 20) + "s " + (isPlay ? "播放中" : "暂停")), true);
-
-            //播放轨迹
-            if (isPlay) {
+                //播放轨迹
+                if (isPlay) {
 
 
-                player.networkHandler.requestTeleport(posXList.get(index)
-                        , posYList.get(index)
-                        , posZList.get(index)
-                        , yawList.get(index)
-                        , pitchList.get(index));
+                    player.networkHandler.requestTeleport(posXList.get(index)
+                            , posYList.get(index)
+                            , posZList.get(index)
+                            , yawList.get(index)
+                            , pitchList.get(index));
 
 
-                setPlayPos(++index);
+                    setPlayPos(++index);
+                }
             }
 
         } else {
             //记录轨迹
             Vec3d pos = owner.getPos();
-            posXList.add((float) pos.getX());
-            posYList.add((float) pos.getY());
-            posZList.add((float) pos.getZ());
-            pitchList.add(owner.getPitch());
-            yawList.add(owner.getYaw());
+            synchronized (this) {
+                posXList.add((float) pos.getX());
+                posYList.add((float) pos.getY());
+                posZList.add((float) pos.getZ());
+                pitchList.add(owner.getPitch());
+                yawList.add(owner.getYaw());
+            }
         }
 
     }
