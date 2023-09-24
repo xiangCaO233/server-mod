@@ -224,6 +224,17 @@ public class ServerUtility implements ModInitializer {
         if (!(backupsPath.exists() && backupsPath.isDirectory())) {
             backupsPath.mkdir();
         }
+
+        //检查轨迹文件夹
+        {
+            Path trajectoryPath = Path.of("./trajectory");
+            if (!Files.exists(trajectoryPath))
+                try {
+                    Files.createDirectory(trajectoryPath);
+                } catch (IOException e) {
+                }
+        }
+
         //初始化better计分板
         //betterScoreboard = new BetterScoreboard("LifeGarden","--LifeGarden--");
         new AlonaThread().start();
