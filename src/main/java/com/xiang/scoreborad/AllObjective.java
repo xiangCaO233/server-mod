@@ -378,6 +378,7 @@ public class AllObjective {
         };
 
 
+
         BetterObjective serverInfoObjective = new BetterObjective("serverInfoObjective", "serverInfoObjective", 12);
         serverInfoObjective.addHeader(bottomInfoHandler);
         serverInfoObjective.addHeader(titleHandler);
@@ -438,6 +439,11 @@ public class AllObjective {
         levelRankingObjective.addHeader(titleHandler);
         levelRankingObjective.addHeader(levelRankingHandler);
 
+        //空的计分项
+        BetterObjective emptyObjective = new BetterObjective("levelRankingObjective", "levelRankingObjective", 4);
+        emptyObjective.addHeader(bottomInfoHandler);
+        emptyObjective.addHeader(titleHandler);
+
         autoLoops.add(serverInfoHandler);
         autoLoops.add(deathRankingHandler);
         autoLoops.add(serverInfoHandler);
@@ -479,6 +485,7 @@ public class AllObjective {
         objectiveMap.put("onlineRanking", onlineRankingObjective);
         objectiveMap.put("levelRanking", levelRankingObjective);
         objectiveMap.put("autoLoop", autoLoopObjective);
+        objectiveMap.put("emptyObjective", emptyObjective);
     }
 
     public static boolean setPlayerObjective(ServerPlayerEntity player, String objectiveName) {

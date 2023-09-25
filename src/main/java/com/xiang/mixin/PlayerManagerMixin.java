@@ -50,8 +50,7 @@ public abstract class PlayerManagerMixin {
 
 
         String playerName = player.getEntityName();
-
-        boolean isBot = connection.getAddress().toString().contains("127.0.0.1");
+        boolean isBot = connection.getAddress() == null;
         if (!isBot) {
             if (!DEBUG)
                 playerTrajectoryMap.put(player.getUuid(), new Trajectory(player));
@@ -62,12 +61,13 @@ public abstract class PlayerManagerMixin {
 
             playerNameMapping.put(player.getUuid(), playerName);
 
+
+            checkStatistic(player);
+
             Integer level = levelMap.get(player.getUuid());
             if (level != null) {
                 levelMap.put(player.getUuid(), player.experienceLevel);
             }
-
-            checkStatistic(player);
 
             Scoreboard scoreboard = player.getScoreboard();
 
