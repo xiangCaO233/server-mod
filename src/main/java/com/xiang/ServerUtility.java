@@ -275,6 +275,9 @@ public class ServerUtility implements ModInitializer {
         if (!killCountStatisticMap.containsKey(uuid)) {
             killCountStatisticMap.put(uuid, 0);
         }
+        if (!onlineStatisticMap.containsKey(uuid)) {
+            onlineStatisticMap.put(uuid, 0);
+        }
     }
 
     public static void startBackupTimer() {

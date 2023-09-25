@@ -47,13 +47,15 @@ public abstract class PlayerManagerMixin {
      */
     @Inject(at = @At("TAIL"), method = "onPlayerConnect")
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        if (!DEBUG)
-            playerTrajectoryMap.put(player.getUuid(), new Trajectory(player));
+
 
         String playerName = player.getEntityName();
 
         boolean isBot = connection.getAddress().toString().contains("127.0.0.1");
         if (!isBot) {
+            if (!DEBUG)
+                playerTrajectoryMap.put(player.getUuid(), new Trajectory(player));
+
             //如果不是假人
             onlinePlayers.add(player);
             AllObjective.setPlayerObjective(player, playerUsedObjectiveMap.get(player.getUuid()));
