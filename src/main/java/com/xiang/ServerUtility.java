@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.alona.AlonaThread;
+import com.xiang.util.ServerUtil;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -330,6 +331,7 @@ public class ServerUtility implements ModInitializer {
     }*/
 
     public static void createBackup() {
+        ServerUtil.executeCommand("save-off");
         playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
         zipFileSize = 0;
         File[] backups = Objects.requireNonNull(backupsPath.listFiles());
@@ -373,6 +375,7 @@ public class ServerUtility implements ModInitializer {
             throw new RuntimeException(e);
         }
         saveScoreData();
+        ServerUtil.executeCommand("save-on");
         System.gc();
         for (Trajectory trajectory : playerTrajectoryMap.values()) {
             try {
