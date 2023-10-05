@@ -5,6 +5,9 @@ import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.util.Util;
 
+import static com.xiang.ServerUtility.willRestart;
+import static com.xiang.navigate.Navigator.playerManager;
+
 public class SystemInfo {
     static {
         oshi.SystemInfo systemInfo = new oshi.SystemInfo();
@@ -16,6 +19,9 @@ public class SystemInfo {
                 try {
                     cpuUsedPercentage = getCpuUsedPercentage(processor);
                     ramUsedPercentage = getRamUsedPercentage(memory);
+                    if(getRamUsedPercentage(memory) >= 85){
+                        willRestart = true;
+                    }
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

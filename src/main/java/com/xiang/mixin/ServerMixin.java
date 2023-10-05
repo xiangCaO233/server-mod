@@ -17,6 +17,7 @@ import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -92,11 +93,12 @@ public abstract class ServerMixin {
         LOGGER.info("指令设置不显示命令回显");
         getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK).set(false, playerManager.getServer());
         LOGGER.info("指令设置超过1/3睡觉跳过黑夜");
-        getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(34, playerManager.getServer());
+        getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE).set(1, playerManager.getServer());
         ServerUtil.executeCommand("carpet setDefault commandPlayer true");
         ServerUtil.executeCommand("carpet setDefault flippinCactus true");
         ServerUtil.executeCommand("carpet setDefault fogOff true");
         ServerUtil.executeCommand("carpet setDefault rotatorBlock true");
+        ServerUtil.executeCommand("carpet setDefault fakePlayerNamePrefix true");
         Info.server = getPlayerManager().getServer();
         AllObjective.initialize();
         AlonaThread.sendGroupMessage("[IH]: 服务器启动。");
@@ -133,6 +135,33 @@ public abstract class ServerMixin {
         skip = !skip;
         if (skip) {
             AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
+        }
+
+        if (willRestart){
+            if (restartFlag){
+                restartFlag = false;
+                new Thread(()->{
+                    stopBackupTimer();
+                    playerManager.broadcast(
+                            Text.of(Formatting.RED +"服务器内存即将溢出 即将自动重启"),false
+                    );
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ignored) {}
+                    createBackup();
+
+                    for (int i = 0; i < 5; i++) {
+                        playerManager.broadcast(
+                                Text.of(Formatting.GOLD +"服务器将在"+i+"s后重启"),false
+                        );
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignored) {}
+                    }
+                    ServerUtil.executeCommand("stop");
+
+                }).start();
+            }
         }
 
 

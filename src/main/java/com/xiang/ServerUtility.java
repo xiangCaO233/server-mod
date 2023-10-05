@@ -41,6 +41,9 @@ public class ServerUtility implements ModInitializer {
     public static ArrayList<PlayerEntity> onlinePlayers;
     //备份线程
     public static Timer backupTimer;
+    //重启标识
+    public static boolean willRestart;
+    public static boolean restartFlag = true;
     //生命值积分项
     public static ScoreboardObjective healthObj;
 
