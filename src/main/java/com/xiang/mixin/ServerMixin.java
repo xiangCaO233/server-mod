@@ -37,6 +37,7 @@ import java.util.function.BooleanSupplier;
 
 import static com.xiang.ServerUtility.*;
 import static com.xiang.navigate.Navigator.stopNavThread;
+import static com.xiang.util.SystemInfo.ramUsedPercentage;
 
 /**
  * 服务端注入
@@ -135,6 +136,20 @@ public abstract class ServerMixin {
         skip = !skip;
         if (skip) {
             AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
+        }
+        if (ramUsedPercentage <= 0.85){
+            overTime = 0;
+        }
+        if(ramUsedPercentage >= 0.85){
+            if (overTime!=0){
+                if (System.currentTimeMillis() - overTime >= 60000){
+                    willRestart = true;
+                }
+            }else {
+                overTime = System.currentTimeMillis();
+            }
+
+
         }
 
         if (willRestart){

@@ -19,9 +19,7 @@ public class SystemInfo {
                 try {
                     cpuUsedPercentage = getCpuUsedPercentage(processor);
                     ramUsedPercentage = getRamUsedPercentage(memory);
-                    if(getRamUsedPercentage(memory) >= 85){
-                        willRestart = true;
-                    }
+
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

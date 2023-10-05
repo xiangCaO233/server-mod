@@ -44,6 +44,8 @@ public class ServerUtility implements ModInitializer {
     //重启标识
     public static boolean willRestart;
     public static boolean restartFlag = true;
+    //标识时间点
+    public static long overTime;
     //生命值积分项
     public static ScoreboardObjective healthObj;
 
