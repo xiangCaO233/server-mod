@@ -97,6 +97,8 @@ public abstract class PlayerManagerMixin {
         AlonaThread.sendGroupMessage("[IH]: " + (isBot ? "[bot]" : "") + player.getEntityName() + " 退出了游戏");
 
         onlinePlayers.remove(player);
+
+        AllObjective.clearPlayerObjective(player);
     }
 
 }

@@ -20,6 +20,16 @@ import java.util.zip.GZIPOutputStream;
 import static com.xiang.navigate.Navigator.playerManager;
 
 public class Trajectory {
+    public static void main(String[] args) {
+        new Thread(()->{
+            for (int i = 0; i < 100000; i++) {
+                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(114514);
+            }
+            System.out.println("over");
+            System.gc();
+            new Scanner(System.in).nextLine();
+        }).start();
+    }
     /**
      * 记录轨迹的开始时间戳
      */

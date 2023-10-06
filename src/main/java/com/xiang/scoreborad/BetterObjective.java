@@ -228,7 +228,7 @@ public class BetterObjective {
      * @return 格式化后的字符串
      */
     public static String format(String displayTitle, int width, int alignment) {
-        if (displayTitle==null)
+        if (displayTitle == null)
             return "null";
         // 去除颜色字符的原始字符串
         String original = displayTitle.replaceAll("§[0-9a-zA-Z]", "");
@@ -302,5 +302,4 @@ public class BetterObjective {
     public ArrayList<ServerPlayerEntity> getPlayerList() {
         return playerList;
     }
-
 }
