@@ -162,7 +162,8 @@ public class BetterObjective {
      */
     private void sendPacket(Packet<?> packet) {
         for (ServerPlayerEntity player : playerList) {
-            player.networkHandler.sendPacket(packet);
+            if (player.networkHandler.isConnectionOpen())
+                player.networkHandler.sendPacket(packet);
         }
     }
 
