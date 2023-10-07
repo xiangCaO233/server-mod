@@ -14,7 +14,7 @@ import static com.xiang.scoreborad.BetterObjective.*;
 
 public class AllObjective {
     //infinity heaven
-    private static HashMap<String, BetterObjective> objectiveMap = new HashMap<>();
+    private static final HashMap<String, BetterObjective> objectiveMap = new HashMap<>();
     private static final String[] titleEffect = new String[]{
             "§b§l §6§ni",
             "§b§l i§6§nn",
@@ -487,6 +487,14 @@ public class AllObjective {
         objectiveMap.put("autoLoop", autoLoopObjective);
         objectiveMap.put("emptyObjective", emptyObjective);
     }
+
+
+    public static void clearPlayerObjective(ServerPlayerEntity player) {
+        for (BetterObjective objective : objectiveMap.values()) {
+            objective.removePlayer(player);
+        }
+    }
+
 
     public static boolean setPlayerObjective(ServerPlayerEntity player, String objectiveName) {
         if (objectiveName == null)
