@@ -45,7 +45,7 @@ public class ServerUtility implements ModInitializer {
     //重启标识
     public static boolean willRestart;
     public static boolean restartFlag = true;
-    public static boolean isOnBackup = false;
+    public static volatile boolean isOnBackup = false;
     //标识时间点
     public static long overTime;
     //生命值积分项

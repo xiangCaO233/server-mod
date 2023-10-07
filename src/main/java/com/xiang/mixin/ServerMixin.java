@@ -140,12 +140,14 @@ public abstract class ServerMixin {
         if (skip) {
             AllObjective.getObjectives().iterator().forEachRemaining(BetterObjective::handlerAndShowScore);
         }
+
+        //查询服务器内存健康度
         if (ramUsedPercentage <= 0.85){
             overTime = 0;
         }
         if(ramUsedPercentage >= 0.85){
             if (overTime!=0){
-                if (System.currentTimeMillis() - overTime >= 30000){
+                if (System.currentTimeMillis() - overTime >= 300000){
                     willRestart = true;
                 }
             }else {
@@ -153,21 +155,17 @@ public abstract class ServerMixin {
             }
         }
 
+        //判断重启
         if (willRestart&&!isOnBackup){
             if (restartFlag){
                 restartFlag = false;
                 new Thread(()->{
-                    stopBackupTimer();
-                    playerManager.broadcast(
-                            Text.of(Formatting.RED+ String.valueOf(Formatting.UNDERLINE) +" 服务器内存即将溢出 即将自动重启 "),false
-                    );
-
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ignored) {}
-
+                    //重启前处理
                     if (!isOnBackup){
+                        //并非正在创建备份中
+                        //首先停止原备份线程
                         stopBackupTimer();
+                        //新建单独线程进行重启前实时备份
                         new Thread(ServerUtility::createBackup).start();
                         try {
                             Thread.sleep(10);
@@ -175,18 +173,29 @@ public abstract class ServerMixin {
                             throw new RuntimeException(e);
                         }
                     }
-                    while (isOnBackup){
+                    //广播重启信息
+                    playerManager.broadcast(
+                            Text.of(Formatting.RED+ String.valueOf(Formatting.UNDERLINE) +" 服务器内存即将溢出 即将自动重启 "),false
+                    );
+                    //在备份线程备份完成前等待
+                    while (isOnBackup) {
+                        Thread.onSpinWait();
                     }
+                    //确保关闭原备份线程
+                    stopBackupTimer();
 
-                    for (int i = 0; i < 5; i++) {
-                        playerManager.broadcast(
-                                Text.of(Formatting.GOLD +"服务器将在"+i+"s后重启"),false
-                        );
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignored) {}
-                    }
-                    ServerUtil.executeCommand("stop");
+                    //倒数重启服务器
+                    new Thread(()->{
+                        for (int i = 11; i >= 1; i--) {
+                            playerManager.broadcast(
+                                    Text.of(Formatting.GOLD +"服务器将在"+i+"s后重启"),false
+                            );
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ignored) {}
+                        }
+                        ServerUtil.executeCommand("stop");
+                    }).start();
 
                 }).start();
             }

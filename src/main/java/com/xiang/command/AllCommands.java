@@ -87,7 +87,7 @@ public class AllCommands implements ModInitializer, Navigator.NewNavCallback {
             );
             dispatcher.register(
                     literal("backup").executes(commandContext -> {
-                        ServerUtility.createBackup();
+                        new Thread(ServerUtility::createBackup).start();
                         return 1;
                     })
             );
