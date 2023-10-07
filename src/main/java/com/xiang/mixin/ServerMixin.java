@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.xiang.ServerUtility;
 import com.xiang.Trajectory;
 import com.xiang.alona.AlonaThread;
 import com.xiang.navigate.Navigator;
@@ -71,6 +72,8 @@ public abstract class ServerMixin {
 
     @Shadow
     public abstract void setMotd(String motd);
+
+    @Shadow public abstract void exit();
 
     @Inject(at = @At("TAIL"), method = "loadWorld")
     private void init(CallbackInfo info) {
@@ -142,28 +145,38 @@ public abstract class ServerMixin {
         }
         if(ramUsedPercentage >= 0.85){
             if (overTime!=0){
-                if (System.currentTimeMillis() - overTime >= 60000){
+                if (System.currentTimeMillis() - overTime >= 30000){
                     willRestart = true;
                 }
             }else {
                 overTime = System.currentTimeMillis();
             }
-
-
         }
 
-        if (willRestart){
+        if (willRestart&&!isOnBackup){
             if (restartFlag){
                 restartFlag = false;
                 new Thread(()->{
                     stopBackupTimer();
                     playerManager.broadcast(
-                            Text.of(Formatting.RED +"服务器内存即将溢出 即将自动重启"),false
+                            Text.of(Formatting.RED+ String.valueOf(Formatting.UNDERLINE) +" 服务器内存即将溢出 即将自动重启 "),false
                     );
+
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException ignored) {}
-                    createBackup();
+
+                    if (!isOnBackup){
+                        stopBackupTimer();
+                        new Thread(ServerUtility::createBackup).start();
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    while (isOnBackup){
+                    }
 
                     for (int i = 0; i < 5; i++) {
                         playerManager.broadcast(

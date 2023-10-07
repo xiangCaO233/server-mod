@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xiang.alona.AlonaThread;
 import com.xiang.util.ServerUtil;
+import com.xiang.util.SystemInfo;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -44,6 +45,7 @@ public class ServerUtility implements ModInitializer {
     //重启标识
     public static boolean willRestart;
     public static boolean restartFlag = true;
+    public static boolean isOnBackup = false;
     //标识时间点
     public static long overTime;
     //生命值积分项
@@ -338,6 +340,7 @@ public class ServerUtility implements ModInitializer {
     public static void createBackup() {
         ServerUtil.executeCommand("save-off");
         playerManager.broadcast(Text.of(Formatting.GOLD + "开始备份"), false);
+        isOnBackup = true;
         zipFileSize = 0;
         File[] backups = Objects.requireNonNull(backupsPath.listFiles());
         if (backups.length >= 5) {
@@ -389,6 +392,10 @@ public class ServerUtility implements ModInitializer {
                 System.out.println("保存轨迹文件遇到问题");
                 e.printStackTrace();
             }
+        }
+        isOnBackup = false;
+        if (SystemInfo.ramUsedPercentage < 0.85){
+            willRestart = false;
         }
     }
 
