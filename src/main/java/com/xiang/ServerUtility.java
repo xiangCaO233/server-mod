@@ -296,7 +296,7 @@ public class ServerUtility implements ModInitializer {
                 ServerUtility.createBackup();
 
                 try {
-                    Thread.sleep(60000 * 15);
+                    Thread.sleep(60000 * 30);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
